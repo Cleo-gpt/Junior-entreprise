@@ -1,192 +1,140 @@
 # BASESQLREFONTE – Base de données du site d'emprunt
 
-Analyse de la base du dossier `Travail/ressources-mpl/Travail Mathieu`, faite le 30.09.2026. Aucune base ni aucun fichier SQL n'a été modifié : ce document ne contient que des constats et des propositions.
+Analyse de la base du dossier `Travail/ressources-mpl/Travail Mathieu`, faite le 30.09.2026.
 
-L'analyse repose sur les fichiers SQL (`database/`, `docs/`) et sur le code PHP (`app/Services`). Je n'ai pas eu accès à une base MySQL en fonctionnement : ce qui y est réellement chargé peut différer.
+- Aucune base ni aucun fichier de Mathieu n'a été modifié : ce document ne contient que des constats et des propositions.
+- L'analyse repose sur les fichiers SQL (`database/`, `docs/`) et sur le code PHP (`app/Services`). Je n'ai pas eu accès à une base MySQL en fonctionnement.
+- Le SQL proposé ici n'a **pas été exécuté** (pas de MySQL sur le poste) : à tester sur une base vide avant usage.
 
 ## En bref
 
-La base fonctionne, mais l'inventaire y existe en trois exemplaires qui ne disent pas la même chose. C'est le seul vrai problème ; le reste relève du rangement.
+La base fonctionne, mais l'inventaire y existe en trois versions qui ne disent pas la même chose. C'est le seul vrai problème ; le reste est du rangement.
 
-Avec 321 objets et quelques centaines d'emprunts par an, la vitesse n'est pas un enjeu. L'optimisation utile ici, c'est d'avoir **une seule source par information** : moins de code, moins d'erreurs, et les calendriers, rappels et archives demandés par le client deviennent de simples requêtes.
+Avec 321 objets et quelques centaines d'emprunts par an, la vitesse n'est pas un enjeu. L'optimisation utile est d'avoir **une seule source par information**, et de porter les règles dans la base plutôt que dans le PHP.
 
-Propositions, par ordre de priorité :
+La refonte tient en **5 fichiers SQL** à exécuter dans l'ordre, sans script JS ni import PHP :
 
-1. Garder un seul fichier de schéma.
-2. Remplacer les 7 tables d'inventaire et les listes JSON par 3 tables : emplacements, types, exemplaires.
-3. Calculer les disponibilités au lieu de les stocker.
-4. Ajouter aux emprunts les dates réelles de retrait et de retour, et empêcher la perte de l'historique.
-5. Porter les règles d'emprunt par rôle dans la table des rôles.
+| Fichier | Contenu | Remplace |
+|---|---|---|
+| `01_schema.sql` | tables, clés, contraintes | `database/schema.sql` et `docs/schema.sql` |
+| `02_reference.sql` | rôles avec leurs limites, emplacements | la liste d'emplacements écrite en dur dans le PHP |
+| `03_inventaire.sql` | reprise de l'inventaire, avec les corrections | `import_excel_by_space.js` et les 2 imports SQL |
+| `04_vues.sql` | catalogue, inventaire, calendrier, archive, rappels | des calculs faits aujourd'hui en PHP |
+| `05_controles.sql` | requêtes de vérification (lecture seule) | rien, c'est nouveau |
+
+Ce qui reste hors SQL : l'envoi des mails, le hachage des mots de passe, l'envoi des photos, et les pages PHP qui lisent les vues.
 
 ---
 
 ## 1. Ce qui existe
 
-### Tables utilisées par le code
-
 | Table | Rôle | Remarque |
 |---|---|---|
-| `users` | Comptes | identifiant texte généré par PHP |
-| `roles`, `user_roles` | Rôles admin, responsable, enseignant, etudiant | correct |
-| `student_whitelist` | Adresses autorisées, avec dates de validité | correct |
-| `materials` | Types de matériel réservables | identifiants, objets abîmés et galerie en JSON |
-| `material_spaces` | Liste des 7 emplacements | contient le **nom de la table** de chaque emplacement |
-| `materials_etagere_son` + 6 autres | Une table par feuille Excel | tout en `TEXT`, colonnes différentes selon la table |
-| `reservations`, `reservation_items` | Emprunts et leurs lignes | identifiants remis en JSON |
-| `trash` | Corbeille (copie JSON de l'élément supprimé) | correct |
-| `emails` | Journal des mails | correct |
+| `users`, `roles`, `user_roles` | comptes et rôles (admin, responsable, enseignant, etudiant) | correct |
+| `student_whitelist` | adresses autorisées, avec dates de validité | correct |
+| `materials` | types de matériel réservables | identifiants, objets abîmés et galerie en JSON |
+| `material_spaces` | les 7 emplacements | contient le **nom de la table** de chaque emplacement |
+| `materials_etagere_son` + 6 autres | une table par feuille Excel | tout en `TEXT`, colonnes différentes selon la table |
+| `reservations`, `reservation_items` | emprunts et leurs lignes | identifiants remis en JSON |
+| `trash` | corbeille (copie JSON de l'élément supprimé) | correct |
+| `emails` | journal des mails | correct |
 
-### Fichiers hors base
+Contenu de l'inventaire : 321 lignes dans 3 tables (son 131, enreg. vidéo 85, support vidéo 105). Les 4 autres tables sont vides.
 
-`storage/users.json`, `reservations.json`, `materials.json`, `trash.json` et `students.json` datent de l'ancienne version et ne sont plus lus pour le fonctionnement normal. `users.json` contient encore l'empreinte du mot de passe admin.
-
----
+Les fichiers `storage/*.json` datent de l'ancienne version. Seul `ImportService` les lit, et il n'est appelé nulle part.
 
 ## 2. Problèmes constatés
 
-### 2.1 Deux schémas qui se contredisent
-
-`database/schema.sql` et `docs/schema.sql` décrivent deux bases différentes. Le code suit `database/schema.sql`.
-
-| Point | `database/schema.sql` | `docs/schema.sql` |
-|---|---|---|
-| Rôles | table `roles` + `user_roles.role_id` | `user_roles.role` en texte, pas de table `roles` |
-| Statut utilisateur | `suspended` | `disabled` |
-| Statut d'emprunt | `checked_out` | `picked_up` |
-| Journal des mails | `emails` | `email_logs` |
-| Corbeille | `trash` | absente |
-| `materials.id` | 32 caractères | 64 caractères |
-
-Quelqu'un qui installe la base avec `docs/schema.sql`, comme le README le demande, obtient un site qui ne fonctionne pas.
-
-### 2.2 L'inventaire existe trois fois
-
-1. **Les 7 tables par emplacement** (`import_inventory_by_space.sql`) : 321 lignes, une par objet.
-2. **La table `materials`**, remplie par `import_materials_from_excel.sql` : 77 types, avec des identifiants du genre `CLAVIER-PRODUCTION-AKAI-MPK-`.
-3. **La table `materials` encore**, remplie par le code : à chaque affichage d'un emplacement du catalogue, `InventorySpaceService::syncProductToMaterials` recrée ou met à jour un type avec un autre identifiant (`INV-` + 10 caractères).
-
-Conséquences :
-
-- Si les deux imports ont été exécutés, chaque type est présent deux fois dans `materials`, sous deux identifiants.
-- Une simple consultation du catalogue écrit dans la base (jusqu'à 51 écritures pour l'étagère son).
-- Les quantités ne concordent pas : l'import n° 2 se fie à la colonne NOMBRE de l'Excel, le code compte les lignes. Exemple : DJI Osmo Mobile 6, 59 d'un côté, 42 de l'autre.
-- Les types synchronisés par le code perdent leurs identifiants individuels (`tracking_mode = generic`, liste vide), alors que l'Excel les contient.
-
-### 2.3 Des tables dont le nom est une donnée
-
-`material_spaces.table_name` indique au code quelle table lire. Le code doit donc interroger `information_schema` pour vérifier que la table et ses colonnes existent, puis construire la requête en collant le nom de table dans le SQL. Ajouter une armoire oblige à créer une table.
-
-La liste des emplacements existe aussi en dur dans `InventorySpaceService` (5 emplacements, avec couleur et icône), en plus des 7 lignes de `material_spaces`.
-
-### 2.4 Des données non typées
-
-- `prix_chf` est un texte (« Prix : 90 CHF », « 90. ») relu par expression régulière à chaque affichage.
-- `etat` est un texte libre ; le code devine si l'objet est abîmé en cherchant « abim », « casse », etc.
-- Toutes les colonnes des 7 tables sont en `TEXT`, sans contrainte ni index.
-
-### 2.5 Des listes en JSON là où il faudrait des lignes
-
-`materials.identifiers`, `materials.damaged_items`, `reservation_items.identifiers` et `reservation_items.damaged_identifiers` sont des tableaux JSON. La base ne peut donc pas :
-
-- garantir qu'un identifiant est unique ;
-- empêcher qu'un même appareil soit prêté deux fois sur la même période (le contrôle est fait en PHP, en relisant tous les emprunts) ;
-- répondre simplement à « où est l'appareil 250dCAN-07 ? » ou « qui l'a eu en dernier ? ».
-
-### 2.6 Deux façons de compter la disponibilité
-
-`materials.quantity_available` est un compteur qu'on décrémente au retrait et qu'on réincrémente au retour. En parallèle, `ReservationService::reservedQuantityForMaterial` recalcule la disponibilité à partir des emprunts qui se chevauchent. Les deux peuvent diverger, et le compteur ne sait pas répondre pour une date future.
-
-### 2.7 L'historique peut disparaître
-
-- `reservations.user_id` est en `ON DELETE CASCADE` : supprimer un élève efface tous ses emprunts. C'est incompatible avec la page archive par année.
-- `reservation_items.material_id` est aussi en `CASCADE`, et `import_materials_from_excel.sql` commence par `DELETE FROM materials` : relancer cet import efface toutes les lignes d'emprunt.
-- `import_inventory_by_space.sql` fait `DROP TABLE` sur chaque table d'emplacement.
-
-### 2.8 Dates réelles manquantes
-
-Un emprunt n'a que ses dates prévues (`start_date`, `end_date`) et `updated_at`. La date réelle de retrait et la date réelle de retour ne sont enregistrées nulle part, alors que le client les veut dans le calendrier et l'archive.
-
-### 2.9 Points mineurs
-
-- `ReservationService::hydrate` fait une requête par emprunt pour charger ses lignes : 200 emprunts affichés = 201 requêtes.
-- Le compte admin par défaut et son mot de passe connu sont dans le script de création.
-- Modifier un emprunt supprime puis recrée toutes ses lignes.
+1. **Deux schémas contradictoires.** `database/schema.sql` (suivi par le code) et `docs/schema.sql` (recommandé par le README) diffèrent : table `roles` absente, `suspended`/`disabled`, `checked_out`/`picked_up`, `emails`/`email_logs`, pas de corbeille. Installer avec `docs/schema.sql` donne un site qui ne fonctionne pas.
+2. **L'inventaire existe trois fois.**
+   - les 7 tables par emplacement (`import_inventory_by_space.sql`), une ligne par objet ;
+   - `materials` rempli par `import_materials_from_excel.sql` : 77 types, quantités tirées de la colonne NOMBRE ;
+   - `materials` rempli par le code : chaque affichage d'un emplacement du catalogue recrée ou met à jour les types sous un autre identifiant (`INV-…`), sans les identifiants individuels. Jusqu'à 51 écritures pour afficher l'étagère son.
+3. **Les 7 tables ne correspondent pas à l'Excel.** Comparées ligne à ligne avec l'Excel de `storage/` : 65 modèles, 37 noms de matériel et 21 prix diffèrent. Exemple : les enregistreurs `MEDIA ZPRO1` à `ZPRO15` sont en modèle « H4n » dans la base et « H4n PRO » dans l'Excel. À l'inverse, l'Excel contient des erreurs de recopie que la base n'a pas (« 62 3D », « 63 3D », « 64 3D »…). Aucune des deux sources n'est juste partout.
+4. **Le NOM est mal associé dans l'étagère son.** 22 enregistreurs y sont nommés « Housse Enregistreur ZOOM ». Détail dans `Travail/analyse-colonnes-excel.md`.
+5. **Des tables dont le nom est une donnée.** Le code lit `material_spaces.table_name`, interroge `information_schema`, puis colle le nom de table dans la requête. Ajouter une armoire oblige à créer une table.
+6. **Des données non typées.** Le prix est un texte (« Prix : 90 CHF ») relu par expression régulière à chaque affichage ; l'état est un texte libre où le code cherche « abim », « casse ».
+7. **Des listes en JSON.** La base ne peut ni garantir qu'un identifiant est unique, ni dire où se trouve un appareil précis, ni qui l'a eu en dernier.
+8. **Une disponibilité stockée qui ne sert pas.** `materials.quantity_available` n'est jamais mis à jour lors d'un emprunt (les deux fonctions prévues pour cela ne sont appelées nulle part). La vraie disponibilité est recalculée à partir des emprunts.
+9. **L'historique peut disparaître.** Supprimer un élève efface ses emprunts (`ON DELETE CASCADE`). `import_materials_from_excel.sql` commence par `DELETE FROM materials`, ce qui efface en cascade toutes les lignes d'emprunt.
+10. **Dates réelles manquantes.** Un emprunt n'a que ses dates prévues ; le retrait et le retour réels ne sont pas enregistrés, alors que le client les veut dans le calendrier et l'archive.
+11. **Mineur.** Une requête par emprunt pour charger ses lignes (200 emprunts = 201 requêtes). Le compte admin et son mot de passe connu sont dans le script de création.
 
 ---
 
-## 3. Base proposée
+## 3. `01_schema.sql` – les tables
 
-### 3.1 Ce qui ne change pas
+Inchangées : `users`, `user_roles`, `student_whitelist`, `trash`, `emails`. Les identifiants texte (`user_…`, `res_…`, `INV-…`) restent tels quels.
 
-`users`, `roles`, `user_roles`, `student_whitelist`, `trash`, `emails` : elles font leur travail. Les identifiants texte (`user_…`, `res_…`) restent tels quels, les changer ne rapporterait rien.
-
-### 3.2 Inventaire : 3 tables au lieu de 9
+### Inventaire : 3 tables au lieu de 9
 
 ```sql
--- Un emplacement physique (étagère, armoire). Visible Admin uniquement.
+-- Un emplacement physique. Jamais montré aux élèves.
 CREATE TABLE spaces (
   id INT AUTO_INCREMENT PRIMARY KEY,
   slug VARCHAR(80) NOT NULL UNIQUE,
-  label VARCHAR(120) NOT NULL,           -- « Étagère son »
-  short_label VARCHAR(40) NOT NULL,      -- « Son »
+  label VARCHAR(120) NOT NULL,             -- « Étagère son »
+  short_label VARCHAR(40) NOT NULL,        -- « Son »
   image VARCHAR(255) NULL,
-  accent CHAR(7) NULL,                   -- couleur de la tuile
-  sort_order INT NOT NULL DEFAULT 0,
-  in_catalog BOOLEAN NOT NULL DEFAULT TRUE
+  accent CHAR(7) NULL,                     -- couleur de la tuile
+  sort_order INT NOT NULL DEFAULT 0
 ) ENGINE=InnoDB;
 
 -- Un type de matériel : ce que l'élève voit et réserve.
--- Table existante, avec des colonnes en plus et en moins.
 CREATE TABLE materials (
   id VARCHAR(32) NOT NULL PRIMARY KEY,
   space_id INT NOT NULL,
-  name VARCHAR(255) NOT NULL,            -- Excel : NOM
-  designation VARCHAR(255) NULL,         -- Excel : Nom du matériel
-  brand VARCHAR(120) NULL,               -- Excel : Marque
-  model VARCHAR(120) NULL,               -- Excel : Modèle
-  category VARCHAR(80) NULL,             -- Excel : Catégorie
-  kit_content TEXT NULL,                 -- Excel : Contenu
-  description TEXT NULL,                 -- Excel : Description
-  replacement_cost DECIMAL(10,2) NULL,   -- Excel : Prix (CHF)
-  tracking_mode ENUM('generic','numbered') NOT NULL DEFAULT 'numbered',
-  quantity_generic INT NOT NULL DEFAULT 0,  -- seulement pour les objets sans identifiant
+  name VARCHAR(255) NOT NULL,              -- Excel : NOM
+  designation VARCHAR(255) NULL,           -- Excel : Nom du matériel
+  brand VARCHAR(120) NULL,                 -- Excel : Marque
+  model VARCHAR(120) NULL,                 -- Excel : Modèle
+  category VARCHAR(80) NULL,               -- Excel : Catégorie
+  kit_content TEXT NULL,                   -- Excel : Contenu
+  description TEXT NULL,                   -- Excel : Description
+  replacement_cost DECIMAL(10,2) NULL,     -- Excel : Prix (CHF)
   cover_image VARCHAR(255) NULL,
   gallery JSON NULL,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE, -- masquer au lieu de supprimer
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_material_space FOREIGN KEY (space_id) REFERENCES spaces(id),
-  INDEX idx_material_name (name)
+  UNIQUE KEY uq_material_name (space_id, name)
 ) ENGINE=InnoDB;
 
--- Un objet physique, avec son étiquette.
+-- Un objet étiqueté (quantity = 1), ou un lot d'objets sans étiquette (quantity = N).
 CREATE TABLE material_units (
   id INT AUTO_INCREMENT PRIMARY KEY,
   material_id VARCHAR(32) NOT NULL,
-  identifier VARCHAR(64) NOT NULL,       -- Excel : Identifiants individuels
+  identifier VARCHAR(64) NULL,             -- Excel : Identifiants individuels
+  quantity INT NOT NULL DEFAULT 1,
   state ENUM('ok','damaged','broken','lost') NOT NULL DEFAULT 'ok',
-  state_note VARCHAR(255) NULL,          -- « capot pile abîmé »
-  missing_parts VARCHAR(255) NULL,       -- Excel : OBJ manquant
+  state_note VARCHAR(255) NULL,            -- « capot pile abîmé »
+  missing_parts VARCHAR(255) NULL,         -- Excel : OBJ manquant
   CONSTRAINT fk_unit_material FOREIGN KEY (material_id) REFERENCES materials(id),
-  UNIQUE KEY uq_unit (material_id, identifier)
+  UNIQUE KEY uq_unit (material_id, identifier),
+  CONSTRAINT chk_unit_qty CHECK (quantity >= 1 AND (identifier IS NULL OR quantity = 1))
 ) ENGINE=InnoDB;
 ```
 
-Ce qui disparaît : les 7 tables `materials_*`, `material_spaces.table_name`, `materials.identifiers`, `materials.damaged_items`, `materials.quantity_total`, `materials.quantity_available`, `materials.status`, et la synchronisation faite à chaque affichage.
+Ce qui disparaît : les 7 tables `materials_*`, `material_spaces`, et dans `materials` les colonnes `identifiers`, `damaged_items`, `quantity_total`, `quantity_available`, `status`, `tracking_mode`.
 
 Ce qui reste pratique :
 
-- La galerie d'images reste en JSON : ce n'est qu'une liste de fichiers, jamais filtrée.
-- Les objets sans identifiant (21 lignes « - » de l'Excel) restent gérés en simple quantité avec `tracking_mode = 'generic'`.
-- Ajouter une armoire = ajouter une ligne dans `spaces`.
+- Une seule façon de compter : le stock d'un type est `SUM(quantity)` de ses lignes en état `ok`.
+- Les 25 bonnettes sans étiquette tiennent en une ligne, pas en 25.
+- L'unicité est par type, pas globale : les identifiants `L-01` à `L-13` sont portés par plusieurs types de trépieds.
+- La galerie d'images reste en JSON : c'est une simple liste de fichiers, jamais filtrée.
+- Ajouter une armoire = une ligne dans `spaces`.
 
-### 3.3 Emprunts
+### Emprunts
 
 ```sql
 ALTER TABLE reservations
   ADD COLUMN checked_out_at DATETIME NULL,     -- retrait réel
   ADD COLUMN returned_at DATETIME NULL,        -- retour réel
   ADD COLUMN reminder_sent_at DATETIME NULL,   -- évite d'envoyer deux fois le rappel
-  ADD INDEX idx_reservation_period (status, start_date, end_date);
+  ADD INDEX idx_reservation_period (status, start_date, end_date),
+  ADD CONSTRAINT chk_reservation_dates CHECK (end_date >= start_date);
 
 -- Les appareils remis, un par ligne, à la place des deux colonnes JSON.
 CREATE TABLE reservation_units (
@@ -200,87 +148,215 @@ CREATE TABLE reservation_units (
 ) ENGINE=InnoDB;
 ```
 
-Et deux clés étrangères à passer de `CASCADE` à `RESTRICT` : `reservations.user_id` et `reservation_items.material_id`. Un élève qui quitte l'école passe en statut `suspended` au lieu d'être supprimé ; un type de matériel retiré est masqué au lieu d'être supprimé.
+Deux clés étrangères passent de `CASCADE` à `RESTRICT` : `reservations.user_id` et `reservation_items.material_id`. Un élève qui quitte l'école passe en `suspended`, un type retiré passe en `is_active = FALSE` : l'archive reste complète.
 
-### 3.4 Règles d'emprunt par rôle
+### Règles d'emprunt par rôle
 
 ```sql
 ALTER TABLE roles
   ADD COLUMN max_items INT NULL,            -- NULL = illimité (Prof)
   ADD COLUMN max_days INT NULL,             -- durée maximale d'un emprunt
-  ADD COLUMN max_extension_days INT NULL;   -- aujourd'hui 7 jours, écrit en dur dans le code
+  ADD COLUMN max_extension_days INT NULL;   -- aujourd'hui 7 jours, écrit en dur dans le PHP
 ```
 
-Changer la limite des élèves devient une modification de donnée, pas de code.
+Changer la limite des élèves devient un `UPDATE`, plus une modification de code.
 
-### 3.5 Disponibilité calculée
-
-Disponible pour une période = exemplaires en état `ok` − exemplaires pris par un emprunt actif qui chevauche la période. C'est déjà le calcul de `reservedQuantityForMaterial` ; il suffit de supprimer le compteur `quantity_available` et les deux méthodes qui le modifient.
-
-### 3.6 Respecter les colonnes de l'Excel sans copier l'Excel
-
-Le client demande de respecter les noms de colonnes. Une vue donne exactement le tableau Excel, pour l'affichage Admin et l'export, sans que les tables en dépendent :
+## 4. `02_reference.sql` – les données fixes
 
 ```sql
-CREATE VIEW v_inventaire AS
-SELECT s.label            AS `Emplacement`,
-       m.name             AS `NOM`,
-       m.designation      AS `Nom du matériel`,
-       m.brand            AS `Marque`,
-       m.model            AS `Modèle`,
-       m.category         AS `Catégorie`,
-       u.identifier       AS `Identifiants individuels`,
-       u.state            AS `État`,
-       m.replacement_cost AS `Prix (CHF)`,
-       m.kit_content      AS `Contenu`,
-       m.description      AS `Description`,
-       u.missing_parts    AS `OBJ manquant`
-FROM material_units u
-JOIN materials m ON m.id = u.material_id
-JOIN spaces s ON s.id = m.space_id;
+INSERT INTO roles (name, max_items, max_days, max_extension_days) VALUES
+  ('admin', NULL, NULL, NULL),
+  ('responsable', NULL, NULL, NULL),
+  ('enseignant', NULL, 30, 14),     -- valeurs à confirmer avec le client
+  ('etudiant', 5, 7, 7);
+
+INSERT INTO spaces (slug, label, short_label, image, accent, sort_order) VALUES
+  ('etagere_son', 'Étagère son', 'Son', 'img/spaces/son.svg', '#1e5699', 1),
+  ('etagere_lumiere', 'Étagère lumière', 'Lumière', 'img/spaces/lumiere.svg', '#f0a500', 2),
+  ('etagere_enreg_video', 'Étagère enreg. vidéo', 'Enreg. vidéo', 'img/spaces/enreg-video.svg', '#2a9d8f', 3),
+  ('etagere_support_video', 'Étagère support vidéo', 'Support vidéo', 'img/spaces/support-video.svg', '#e76f51', 4),
+  ('etagere_prod_studio', 'Étagère prod. studio', 'Prod. studio', 'img/spaces/prod-studio.svg', '#6c5ce7', 5),
+  ('armoire_rouge', 'Armoire rouge', 'Armoire rouge', NULL, NULL, 6),
+  ('armoire_bleue', 'Armoire bleue', 'Armoire bleue', NULL, NULL, 7);
 ```
 
-La colonne NOMBRE n'est plus saisie : c'est le nombre de lignes du type.
+Le compte admin ne va pas dans ce fichier : un fichier à part, non versionné, avec un mot de passe propre à l'installation.
 
-### 3.7 Ce que les besoins du client deviennent
+## 5. `03_inventaire.sql` – la reprise, sans JS
 
-| Besoin | Avec la base proposée |
+Les 321 lignes sont déjà en SQL dans les 7 tables. On les fait passer par une table de transit, on corrige par des `UPDATE` écrits dans le fichier, puis on répartit. Tout est relançable et chaque correction reste lisible.
+
+```sql
+-- 1. Transit : une ligne par ligne d'inventaire, tout en texte
+CREATE TABLE import_inventaire (
+  emplacement VARCHAR(80) NOT NULL,
+  nom VARCHAR(255), designation VARCHAR(255), marque VARCHAR(120), modele VARCHAR(120),
+  categorie VARCHAR(80), identifiant VARCHAR(64), etat VARCHAR(255), prix VARCHAR(60),
+  contenu TEXT, description TEXT, nombre INT NOT NULL DEFAULT 1
+);
+
+INSERT INTO import_inventaire
+  (emplacement, nom, designation, marque, modele, categorie, identifiant, etat, prix, contenu, description)
+SELECT 'etagere_son', nom, nom_du_materiel, marque, modele, categorie,
+       identifiants_individuels, etat, prix_chf, contenu, description
+FROM materials_etagere_son
+UNION ALL
+SELECT 'etagere_enreg_video', nom, nom_du_materiel, marque, modele, categorie,
+       identifiants_individuels, etat, prix_chf, contenu, description
+FROM materials_etagere_enreg_video
+UNION ALL
+SELECT 'etagere_support_video', nom, nom_du_materiel, marque, modele, categorie,
+       identifiants_individuels, etat, prix_chf, contenu, description
+FROM materials_etagere_support_video;
+
+-- 2. Corrections validées par le client, une par ligne
+UPDATE import_inventaire SET modele = 'H4n PRO', nom = 'Enregistreur ZOOM H4N Pro'
+ WHERE identifiant LIKE 'MEDIA ZPRO%';
+UPDATE import_inventaire SET nombre = 25 WHERE nom = 'Bonette pour ZOOM H4n';
+-- … la liste complète vient des réponses de Mathieu
+
+-- 3. Les types (même formule d'identifiant que le PHP actuel : les emprunts existants restent valables)
+INSERT INTO materials (id, space_id, name, designation, brand, model, category,
+                       kit_content, description, replacement_cost)
+SELECT CONCAT('INV-', UPPER(LEFT(MD5(CONCAT(i.emplacement, '|', LOWER(MIN(TRIM(i.nom))))), 10))),
+       s.id, MIN(TRIM(i.nom)), MIN(i.designation), MIN(i.marque), MIN(i.modele), MIN(i.categorie),
+       MIN(i.contenu), MIN(i.description),
+       MIN(CAST(REPLACE(REGEXP_SUBSTR(i.prix, '[0-9]+([.,][0-9]+)?'), ',', '.') AS DECIMAL(10,2)))
+FROM import_inventaire i
+JOIN spaces s ON s.slug = i.emplacement
+GROUP BY i.emplacement, s.id, TRIM(i.nom);
+
+-- 4. Les exemplaires
+INSERT INTO material_units (material_id, identifier, quantity, state, state_note)
+SELECT CONCAT('INV-', UPPER(LEFT(MD5(CONCAT(i.emplacement, '|', LOWER(TRIM(i.nom)))), 10))),
+       NULLIF(TRIM(i.identifiant), '-'),
+       i.nombre,
+       IF(i.etat REGEXP 'abim|endomag|cass', 'damaged', 'ok'),
+       IF(i.etat REGEXP 'abim|endomag|cass', i.etat, NULL)
+FROM import_inventaire i;
+
+DROP TABLE import_inventaire;
+```
+
+Deux points à régler avant d'écrire la version finale :
+
+- Les quantités des objets sans étiquette (21 lignes « - ») ne sont pas dans les 7 tables : il faut les reprendre de la colonne NOMBRE, par des `UPDATE` à l'étape 2.
+- La liste « OBJ manquant » est une liste à part dans l'Excel (identifiant → objet manquant) : à rattacher par un `UPDATE … JOIN` sur l'identifiant.
+
+Variante si le client préfère repartir de l'Excel nettoyé : enregistrer chaque feuille en CSV et la charger dans `import_inventaire` par l'import CSV de phpMyAdmin. Les étapes 2 à 4 restent identiques.
+
+## 6. `04_vues.sql` – les règles dans la base
+
+Chaque besoin du client devient une vue ; le PHP n'a plus qu'à faire `SELECT * FROM vue WHERE …`.
+
+```sql
+-- Stock par type
+CREATE VIEW v_stock AS
+SELECT m.id AS material_id,
+       COALESCE(SUM(u.quantity), 0) AS total,
+       COALESCE(SUM(IF(u.state = 'ok', u.quantity, 0)), 0) AS en_etat
+FROM materials m
+LEFT JOIN material_units u ON u.material_id = m.id
+GROUP BY m.id;
+
+-- Catalogue élève : aucun emplacement, aucun prix
+CREATE VIEW v_catalogue AS
+SELECT m.id, m.name, m.designation, m.brand, m.model, m.category,
+       m.kit_content, m.description, m.cover_image, m.gallery, s.en_etat AS quantite
+FROM materials m
+JOIN v_stock s ON s.material_id = m.id
+WHERE m.is_active;
+
+-- Inventaire Admin : les colonnes de l'Excel, dans l'ordre de l'Excel
+CREATE VIEW v_inventaire AS
+SELECT sp.label AS `Emplacement`, m.name AS `NOM`, st.total AS `NOMBRE`,
+       m.designation AS `Nom du matériel`, m.brand AS `Marque`, m.model AS `Modèle`,
+       m.category AS `Catégorie`, u.identifier AS `Identifiants individuels`,
+       u.state AS `État`, m.replacement_cost AS `Prix (CHF)`,
+       m.kit_content AS `Contenu`, m.description AS `Description`,
+       u.missing_parts AS `OBJ manquant`
+FROM material_units u
+JOIN materials m ON m.id = u.material_id
+JOIN spaces sp ON sp.id = m.space_id
+JOIN v_stock st ON st.material_id = m.id;
+
+-- Calendrier et archive : une ligne par matériel emprunté
+CREATE VIEW v_emprunts AS
+SELECT r.id AS reservation_id, r.status, r.user_id, us.name AS emprunteur, us.email,
+       r.start_date, r.end_date, r.checked_out_at, r.returned_at,
+       YEAR(r.start_date) AS annee, m.id AS material_id, m.name AS materiel, ri.quantity
+FROM reservations r
+JOIN users us ON us.id = r.user_id
+JOIN reservation_items ri ON ri.reservation_id = r.id
+JOIN materials m ON m.id = ri.material_id;
+
+-- Rappels à envoyer : sorti, échéance atteinte, pas encore rappelé
+CREATE VIEW v_rappels AS
+SELECT r.id AS reservation_id, us.name, us.email, r.end_date
+FROM reservations r
+JOIN users us ON us.id = r.user_id
+WHERE r.status = 'checked_out' AND r.end_date <= CURRENT_DATE AND r.reminder_sent_at IS NULL;
+```
+
+| Besoin du client | Requête |
 |---|---|
-| Calendrier Admin | `reservations` + `users`, filtré par période |
-| Calendrier Prof/Élève | même requête, filtrée sur `user_id` |
-| Archive par année | `WHERE YEAR(start_date) = ?`, avec `checked_out_at` et `returned_at` |
-| Rappel automatique | `status = 'checked_out' AND end_date <= ? AND reminder_sent_at IS NULL` |
-| Emplacement caché aux élèves | ne pas sélectionner `space_id` dans les requêtes du catalogue élève |
+| Calendrier Admin | `v_emprunts` filtré par période |
+| Calendrier Prof/Élève | `v_emprunts WHERE user_id = ?` |
+| Archive par année | `v_emprunts WHERE annee = ?` |
+| Rappel automatique | `v_rappels`, lue par une tâche planifiée qui envoie le mail puis remplit `reminder_sent_at` |
+| Emplacement caché aux élèves | les pages élève ne lisent que `v_catalogue` |
 | Limites par rôle | colonnes de `roles` |
-| Token élève | une colonne dans `users`, à définir après discussion avec l'USI |
+| Token élève | une colonne dans `users`, à définir avec l'USI |
+
+La disponibilité sur une période dépend de deux dates, donc elle ne peut pas être une vue. Elle reste une requête, celle que le code fait déjà :
+
+```sql
+SELECT s.en_etat - COALESCE(SUM(ri.quantity), 0) AS disponible
+FROM v_stock s
+LEFT JOIN reservation_items ri ON ri.material_id = s.material_id
+LEFT JOIN reservations r ON r.id = ri.reservation_id
+     AND r.status IN ('pending', 'approved', 'checked_out')
+     AND r.start_date <= :fin AND r.end_date >= :debut
+WHERE s.material_id = :id
+GROUP BY s.material_id, s.en_etat;
+```
+
+## 7. `05_controles.sql` – vérifier après chaque reprise
+
+```sql
+SELECT COUNT(*) AS types, (SELECT SUM(quantity) FROM material_units) AS objets FROM materials;
+SELECT name FROM materials m WHERE NOT EXISTS (SELECT 1 FROM material_units u WHERE u.material_id = m.id);
+SELECT identifier, COUNT(*) FROM material_units WHERE identifier IS NOT NULL GROUP BY identifier HAVING COUNT(*) > 1;
+SELECT id, name FROM materials WHERE replacement_cost IS NULL;
+```
+
+Attendu : 321 lignes d'exemplaires avant correction des quantités, aucun type sans exemplaire, et seuls `L-01` à `L-13` en double.
 
 ---
 
-## 4. Ce que je ne recommande pas
+## 8. Ce que je ne recommande pas
 
+- **Triggers, procédures stockées, événements planifiés.** Ce serait « encore plus de SQL », mais c'est de la logique cachée, difficile à relire et souvent bloquée ou mal exportée chez les hébergeurs mutualisés. Les vues et les contraintes suffisent.
+- **Empêcher en base qu'un même appareil soit prêté deux fois sur la même période.** MySQL n'a pas de contrainte pour cela ; ce contrôle reste une requête faite avant l'enregistrement.
 - **Remplacer les identifiants texte par des nombres** : beaucoup de code à toucher, aucun gain visible.
-- **Remplacer la corbeille par des suppressions logiques partout** : la table `trash` est simple et fonctionne.
-- **Ajouter des index en série** : les clés étrangères en créent déjà sur les colonnes de jointure ; à ce volume, un seul index supplémentaire est utile (période des emprunts).
-- **Une table par année pour l'archive** : un filtre sur la date suffit.
+- **Ajouter des index en série** : les clés étrangères en créent déjà ; à ce volume, seul l'index sur la période des emprunts est utile.
+- **Une table par année pour l'archive** : un filtre sur l'année suffit.
 
----
+## 9. Ordre de mise en place
 
-## 5. Ordre de mise en place
+1. **Sauvegarder** la base actuelle (export phpMyAdmin ou `mysqldump`).
+2. **Faire valider** par Mathieu les questions ci-dessous.
+3. **Écrire et tester** les 5 fichiers sur une base vide, en local.
+4. **Brancher le PHP** sur les nouvelles tables et les vues ; supprimer `syncProductToMaterials` et la lecture de `information_schema`.
+5. **Contrôler** avec `05_controles.sql`, puis un emprunt de test de bout en bout.
+6. **Supprimer** les 7 tables `materials_*`, `material_spaces`, `docs/schema.sql`, les 2 anciens imports, le script JS et `storage/*.json`, une fois le tout validé.
 
-Chaque étape laisse le site en état de marche.
+Version requise : MySQL 8.0.16 ou MariaDB 10.2 au minimum (contraintes `CHECK`, `REGEXP_SUBSTR`). À vérifier auprès de l'hébergeur.
 
-1. **Sauvegarder** la base actuelle (`mysqldump`) avant toute chose.
-2. **Un seul schéma** : garder `database/schema.sql`, supprimer `docs/schema.sql`, corriger le README. Sortir le compte admin par défaut du script.
-3. **Créer** `spaces`, `material_units`, `reservation_units` et les nouvelles colonnes, à côté de l'existant.
-4. **Remplir** les nouvelles tables depuis l'Excel nettoyé, pas depuis les 7 tables : le NOM y est mal associé (22 « Housse Enregistreur ZOOM » qui sont des enregistreurs). Voir `Travail/analyse-colonnes-excel.md`.
-5. **Brancher le code** : `InventorySpaceService` lit `spaces` et `materials`, sans synchronisation ; `MaterialService` et `ReservationService` utilisent `material_units` et `reservation_units`.
-6. **Contrôler** : 321 exemplaires, 77 types, un emprunt de test de bout en bout.
-7. **Supprimer** les 7 tables `materials_*`, `material_spaces`, les colonnes JSON remplacées et les fichiers `storage/*.json`, une fois le tout validé par le client.
+## 10. Questions à trancher avant de commencer
 
-Les étapes 1 et 2 peuvent se faire tout de suite. Les étapes 3 à 7 correspondent aux lots 3.2 et 3.3 du planning (6 h 30 prévues) ; l'étape 5 déborde sur le lot Code.
-
-## 6. Questions à trancher avant de commencer
-
-1. Les deux imports ont-ils été exécutés sur la base de Mathieu ? Si oui, `materials` contient des doublons à nettoyer.
-2. Y a-t-il déjà de vrais emprunts dans la base, ou seulement des essais ? S'il n'y a que des essais, on peut repartir d'une base vide et sauter la reprise des emprunts.
-3. Les réponses aux 7 questions de `Travail/analyse-colonnes-excel.md` (NOMBRE, identifiants en double, objets sans identifiant).
+1. Quelle source fait foi quand la base et l'Excel diffèrent (65 modèles, 37 noms, 21 prix) ?
+2. Les quantités des objets sans étiquette : la colonne NOMBRE de l'Excel est-elle juste pour eux ?
+3. Y a-t-il déjà de vrais emprunts dans la base, ou seulement des essais ? S'il n'y a que des essais, on repart d'une base vide.
+4. Les limites par rôle (nombre d'objets, durée, prolongation) pour Élève et Prof.
+5. Les 7 questions de `Travail/analyse-colonnes-excel.md`.
