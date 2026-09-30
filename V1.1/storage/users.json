@@ -1,0 +1,14 @@
+[
+    {
+        "id": "user_69173db3d5c0d2.98133464",
+        "name": "Administrateur",
+        "email": "admin@eduvaud.ch",
+        "password": "$2y$10$3132YEMYStP2VhEvbc59Z.ooxrAjnU5qZAH6\/YkDqUEw7MyZkr57e",
+        "roles": [
+            "admin",
+            "responsable"
+        ],
+        "status": "active",
+        "created_at": "2025-11-14T15:33:23+01:00"
+    }
+]

@@ -1,0 +1,22 @@
+﻿[
+  {
+    "id": "CAM-001",
+    "name": "Camera 4K Sony",
+    "description": "Camera 4K pour tournages studio",
+    "quantity_total": 5,
+    "quantity_available": 5,
+    "status": "available",
+    "image": "assets/img/sample-camera.svg",
+    "damaged": []
+  },
+  {
+    "id": "LAP-001",
+    "name": "MacBook Pro Montage",
+    "description": "Portable pour montage vidéo",
+    "quantity_total": 3,
+    "quantity_available": 3,
+    "status": "available",
+    "image": "assets/img/sample-macbook.svg",
+    "damaged": []
+  }
+]
