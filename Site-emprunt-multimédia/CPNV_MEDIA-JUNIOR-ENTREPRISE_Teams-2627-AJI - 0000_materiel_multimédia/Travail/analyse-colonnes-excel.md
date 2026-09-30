@@ -53,7 +53,7 @@ Les trois feuilles remplies ont les mêmes 11 colonnes. Les quatre feuilles vide
 
 Deux imports générés le 25.08.2026 existent dans `Travail Mathieu/database` :
 
-- `import_inventory_by_space.sql` crée **une table par feuille** (`materials_etagere_son`, …) avec toutes les colonnes en `TEXT`, plus `material_spaces`. Les noms de colonnes de l'Excel sont respectés, mais les 40 lignes d'en-tête sont importées comme des données et rien n'est typé.
+- `import_inventory_by_space.sql` crée **une table par feuille** (`materials_etagere_son`, …) avec toutes les colonnes en `TEXT`, plus `material_spaces`. Les noms de colonnes de l'Excel sont respectés et les lignes d'en-tête répétées sont bien écartées (321 lignes importées), mais rien n'est typé et le NOM est recopié sur les lignes suivantes : les 22 lignes « Housse Enregistreur ZOOM » sont en réalité des enregistreurs.
 - `import_materials_from_excel.sql` remplit la table `materials` avec 77 types. Il se fie à NOMBRE et associe chaque NOM à la ligne de détail voisine : « Chargeur secteur pour ZOOM » reçoit la description d'un enregistreur, et les types dont NOMBRE ne correspond pas passent en suivi `generic` sans identifiants (Enregistreur ZOOM H4N : 7 exemplaires, liste d'identifiants vide).
 
 La table `materials` n'a pas de champ pour la marque, le modèle, la catégorie, le contenu ni l'emplacement : tout est concaténé dans `description`. Les identifiants sont un tableau JSON, ce qui ne permet pas de stocker l'état ou les objets manquants par exemplaire.
