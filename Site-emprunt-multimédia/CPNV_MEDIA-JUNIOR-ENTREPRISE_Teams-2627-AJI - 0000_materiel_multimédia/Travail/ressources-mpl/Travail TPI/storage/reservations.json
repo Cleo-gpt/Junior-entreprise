@@ -1,0 +1,114 @@
+[
+    {
+        "user_id": "user_69173db3d5c0d2.98133464",
+        "items": [
+            {
+                "material_id": "TEST3",
+                "quantity": 1,
+                "identifiers": []
+            },
+            {
+                "material_id": "TEST4",
+                "quantity": 3,
+                "identifiers": []
+            }
+        ],
+        "start_date": "2025-12-05",
+        "end_date": "2025-12-12",
+        "comment": "",
+        "id": "res_692043d50b0dd5.80973188",
+        "status": "checked_out",
+        "created_at": "2025-11-21T11:49:57+01:00",
+        "updated_at": "2025-11-24T14:00:45+01:00",
+        "user_extension_used": false,
+        "material_id": "TEST3",
+        "quantity": 1
+    },
+    {
+        "user_id": "user_69173db3d5c0d2.98133464",
+        "items": [
+            {
+                "material_id": "TEST",
+                "quantity": 3,
+                "identifiers": []
+            },
+            {
+                "material_id": "TEST2",
+                "quantity": 2,
+                "identifiers": []
+            }
+        ],
+        "start_date": "2025-12-12",
+        "end_date": "2025-12-26",
+        "comment": "",
+        "id": "res_692044acac9434.97860110",
+        "status": "pending",
+        "created_at": "2025-11-21T11:53:32+01:00",
+        "updated_at": "2025-11-21T11:53:32+01:00",
+        "user_extension_used": false,
+        "material_id": "TEST",
+        "quantity": 3
+    },
+    {
+        "user_id": "user_69173db3d5c0d2.98133464",
+        "items": [
+            {
+                "material_id": "HELLO",
+                "quantity": 3,
+                "identifiers": []
+            }
+        ],
+        "start_date": "2025-11-24",
+        "end_date": "2025-11-26",
+        "comment": "",
+        "id": "res_692456e3c57022.08876028",
+        "status": "pending",
+        "created_at": "2025-11-24T14:00:19+01:00",
+        "updated_at": "2025-11-24T14:00:19+01:00",
+        "user_extension_used": false,
+        "material_id": "HELLO",
+        "quantity": 3
+    },
+    {
+        "user_id": "user_69173db3d5c0d2.98133464",
+        "items": [
+            {
+                "material_id": "SALUT",
+                "quantity": 5,
+                "identifiers": []
+            }
+        ],
+        "start_date": "2025-11-24",
+        "end_date": "2025-11-25",
+        "comment": "",
+        "id": "res_692458c79c29e2.23018086",
+        "status": "pending",
+        "created_at": "2025-11-24T14:08:23+01:00",
+        "updated_at": "2025-11-24T14:08:23+01:00",
+        "user_extension_used": false,
+        "material_id": "SALUT",
+        "quantity": 5
+    },
+    {
+        "user_id": "user_69173db3d5c0d2.98133464",
+        "items": [
+            {
+                "material_id": "TEST",
+                "quantity": 3,
+                "identifiers": [],
+                "return_status": "ok",
+                "return_condition": null
+            }
+        ],
+        "start_date": "2025-11-20",
+        "end_date": "2025-12-04",
+        "comment": "",
+        "id": "res_691f0ff28758b2.01442527",
+        "status": "returned",
+        "created_at": "2025-11-20T13:56:18+01:00",
+        "updated_at": "2025-11-27T15:40:45+01:00",
+        "material_id": "TEST",
+        "quantity": 3,
+        "user_extension_used": true
+    }
+]

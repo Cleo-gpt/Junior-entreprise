@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Todolist – Site emprunt multimédia</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="entete">
+    <h1 id="titre">Todolist</h1>
+    <div id="intro" class="intro"></div>
+    <div class="progression">
+      <div class="barre"><div id="barre-totale" class="barre-remplie"></div></div>
+      <span id="compteur-total" class="compteur"></span>
+    </div>
+    <label class="filtre"><input type="checkbox" id="masquer-faites"> Masquer les tâches terminées</label>
+  </header>
+
+  <main id="etapes"></main>
+
+  <p id="message" class="message" role="status"></p>
+
+  <script>
+    const LIGNE_TACHE = /^(\s*)[-*] \[([ xX])\] (.*)$/;
+    const zoneEtapes = document.getElementById('etapes');
+    const message = document.getElementById('message');
+    const masquerFaites = document.getElementById('masquer-faites');
+    let dernierContenu = null;
+
+    // Échappe le texte puis applique `code` et **gras**
+    function enLigne(texte) {
+      const brut = texte.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return brut.replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    }
+
+    function afficherMessage(texte) {
+      message.textContent = texte;
+      message.classList.toggle('visible', texte !== '');
+    }
+
+    function majBarre(barre, compteur, faites, total) {
+      barre.style.width = total ? (100 * faites / total) + '%' : '0%';
+      compteur.textContent = faites + ' / ' + total;
+    }
+
+    function afficher(contenu) {
+      dernierContenu = contenu;
+      const lignes = contenu.split('\n');
+      const intro = [];
+      let etape = null;
+      let totalFaites = 0, total = 0;
+      zoneEtapes.textContent = '';
+
+      lignes.forEach((ligne, numero) => {
+        const tache = ligne.match(LIGNE_TACHE);
+        if (ligne.startsWith('# ')) {
+          document.getElementById('titre').textContent = ligne.slice(2);
+        } else if (ligne.startsWith('## ')) {
+          etape = document.createElement('section');
+          etape.className = 'etape';
+          etape.innerHTML = '<div class="etape-tete"><h2>' + enLigne(ligne.slice(3)) + '</h2>' +
+            '<span class="compteur"></span></div><div class="barre"><div class="barre-remplie"></div></div>';
+          etape.faites = 0;
+          etape.total = 0;
+          zoneEtapes.appendChild(etape);
+        } else if (ligne.startsWith('### ') && etape) {
+          const h3 = document.createElement('h3');
+          h3.innerHTML = enLigne(ligne.slice(4));
+          etape.appendChild(h3);
+        } else if (tache && etape) {
+          const fait = tache[2] !== ' ';
+          const label = document.createElement('label');
+          label.className = 'tache' + (fait ? ' faite' : '');
+          label.style.marginLeft = (tache[1].length * 0.75) + 'rem';
+          const caseACocher = document.createElement('input');
+          caseACocher.type = 'checkbox';
+          caseACocher.checked = fait;
+          caseACocher.addEventListener('change', () => cocher(numero, ligne, caseACocher.checked));
+          const texte = document.createElement('span');
+          texte.innerHTML = enLigne(tache[3]);
+          label.append(caseACocher, texte);
+          etape.appendChild(label);
+          etape.total++;
+          total++;
+          if (fait) { etape.faites++; totalFaites++; }
+        } else if (ligne.trim() !== '' && ligne.trim() !== '---') {
+          if (etape) {
+            const p = document.createElement('p');
+            p.className = 'note';
+            p.innerHTML = enLigne(ligne);
+            etape.appendChild(p);
+          } else {
+            intro.push(enLigne(ligne));
+          }
+        }
+      });
+
+      document.getElementById('intro').innerHTML = intro.map(l => '<p>' + l + '</p>').join('');
+      zoneEtapes.querySelectorAll('.etape').forEach(section => {
+        majBarre(section.querySelector('.barre-remplie'), section.querySelector('.compteur'), section.faites, section.total);
+        section.classList.toggle('terminee', section.total > 0 && section.faites === section.total);
+      });
+      majBarre(document.getElementById('barre-totale'), document.getElementById('compteur-total'), totalFaites, total);
+    }
+
+    async function charger() {
+      try {
+        const reponse = await fetch('/api/todo', { cache: 'no-store' });
+        if (!reponse.ok) throw new Error();
+        const contenu = await reponse.text();
+        if (contenu !== dernierContenu) afficher(contenu);
+        afficherMessage('');
+      } catch (erreur) {
+        afficherMessage('Serveur arrêté : relancer « python3 todolist/serveur.py ».');
+      }
+    }
+
+    async function cocher(ligne, texte, fait) {
+      try {
+        const reponse = await fetch('/api/cocher', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ligne: ligne, texte: texte, fait: fait })
+        });
+        if (reponse.status !== 200 && reponse.status !== 409) throw new Error();
+        afficher(await reponse.text());
+        afficherMessage(reponse.status === 409 ? 'Le fichier avait changé : la liste a été rechargée, recoche la tâche.' : '');
+      } catch (erreur) {
+        afficherMessage('Tâche non enregistrée : le serveur ne répond pas.');
+        if (dernierContenu !== null) afficher(dernierContenu);
+      }
+    }
+
+    masquerFaites.addEventListener('change', () => document.body.classList.toggle('masquer-faites', masquerFaites.checked));
+    charger();
+    // Reprend les modifications faites directement dans TODOLIST.md
+    setInterval(charger, 3000);
+  </script>
+</body>
+</html>
