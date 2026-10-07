@@ -1,6 +1,0 @@
-# À placer dans le dossier du site quand il est dans un sous-dossier de www/ (ex. www/emprunt/).
-# L'adresse du dossier renvoie vers public/, et les dossiers internes ne sont plus téléchargeables.
-RewriteEngine On
-RewriteCond %{REQUEST_URI} ^(.*/)$
-RewriteRule ^$ %1public/ [R=302,L]
-RewriteRule ^(app|config|database|docs|routes|storage|uploads)(/|$) - [F,L]

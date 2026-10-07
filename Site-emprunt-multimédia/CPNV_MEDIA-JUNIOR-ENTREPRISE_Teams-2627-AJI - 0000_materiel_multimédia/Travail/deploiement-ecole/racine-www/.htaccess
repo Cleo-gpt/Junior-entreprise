@@ -1,5 +1,0 @@
-# À placer dans www/, à côté des dossiers app/, config/, public/…
-# Envoie toutes les adresses vers public/, la seule partie du site qui doit être visible.
-RewriteEngine On
-RewriteRule ^$ public/ [L]
-RewriteRule ^((?!public/).*)$ public/$1 [L]

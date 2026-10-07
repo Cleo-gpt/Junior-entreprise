@@ -58,7 +58,7 @@ Piège rencontré : chaque dossier recollé dans `htdocs` revient avec le `confi
 
 ### Mise en ligne sur le serveur de l'école
 
-Serveur AutoWeb `eleves.mediamatique.ch`. Tout est dans `Travail/deploiement-ecole/` (voir son `README.md`).
+Serveur AutoWeb `eleves.mediamatique.ch`. Le tout avait été préparé dans `Travail/deploiement-ecole/`, supprimé du dépôt le 07.10 (il reste dans l'historique Git).
 
 | Élément | Rôle |
 |---|---|
