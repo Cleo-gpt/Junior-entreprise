@@ -8,19 +8,19 @@ Chef de projet : Cléo Forclaz · Coach : Alain Jaccobi · Client : Mathieu Péz
 
 ### 1.1 Séances
 - [x] Kick-off client (16.09)
-- [ ] Fixer la prochaine séance
-- [ ] Séances coach du mercredi
+- [x] Fixer la prochaine séance
+- [x] Séances coach du mercredi
 
 ### 1.2 Documents
 - [x] PV du 16.09
-- [ ] Corriger l'en-tête et les échéances du PV
+- [x] Corriger l'en-tête et les échéances du PV
 - [x] Planning initial
-- [ ] Rédiger le cahier des charges
-- [ ] Faire signer le cahier des charges
-- [ ] Rédiger le devis
-- [ ] Faire signer le devis
-- [ ] Tenir le journal de bord
-- [ ] Demande de facture
+- [x] Rédiger le cahier des charges
+- [x] Faire signer le cahier des charges
+- [x] Rédiger le devis
+- [x] Faire signer le devis
+- [x] Tenir le journal de bord
+- [x] Demande de facture
 
 ### 1.3 À clarifier
 - [ ] Lots BD attribués à Mathieu ?
@@ -34,7 +34,7 @@ Chef de projet : Cléo Forclaz · Coach : Alain Jaccobi · Client : Mathieu Péz
 - [x] Moodboard
 - [x] Croquis
 - [x] Wireframe
-- [ ] Déposer les fichiers dans le dossier
+- [x] Déposer les fichiers dans le dossier
 
 ## 3. Base de données (8 h)
 
