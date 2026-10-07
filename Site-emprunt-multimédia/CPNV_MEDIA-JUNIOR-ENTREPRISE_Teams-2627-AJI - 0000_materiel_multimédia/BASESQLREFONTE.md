@@ -50,7 +50,7 @@ Les fichiers `storage/*.json` datent de l'ancienne version. Seul `ImportService`
    - les 7 tables par emplacement (`import_inventory_by_space.sql`), une ligne par objet ;
    - `materials` rempli par `import_materials_from_excel.sql` : 77 types, quantités tirées de la colonne NOMBRE ;
    - `materials` rempli par le code : chaque affichage d'un emplacement du catalogue recrée ou met à jour les types sous un autre identifiant (`INV-…`), sans les identifiants individuels. Jusqu'à 51 écritures pour afficher l'étagère son.
-3. **Les 7 tables ne correspondent pas à l'Excel.** Comparées ligne à ligne avec l'Excel de `storage/` : 65 modèles, 37 noms de matériel et 21 prix diffèrent. Exemple : les enregistreurs `MEDIA ZPRO1` à `ZPRO15` sont en modèle « H4n » dans la base et « H4n PRO » dans l'Excel. À l'inverse, l'Excel contient des erreurs de recopie que la base n'a pas (« 62 3D », « 63 3D », « 64 3D »…). Aucune des deux sources n'est juste partout.
+3. **Les 7 tables ne correspondent pas à l'Excel.** Comparées ligne à ligne avec l'Excel de `storage/` : 65 modèles, 37 noms de matériel et 21 prix diffèrent. Exemple : les enregistreurs `MEDIA ZPRO1` à `ZPRO15` sont en modèle « H4n » dans la base et « H4n PRO » dans l'Excel. À l'inverse, l'Excel contient des erreurs de recopie que la base n'a pas (« 62 3D », « 63 3D », « 64 3D »…). **Décision du client (07.10.2026) : l'Excel fait foi.** Les 7 tables ne servent plus de source ; les erreurs de l'Excel se corrigent dans l'Excel.
 4. **Le NOM est mal associé dans l'étagère son.** 22 enregistreurs y sont nommés « Housse Enregistreur ZOOM ». Détail dans `Travail/analyse-colonnes-excel.md`.
 5. **Des tables dont le nom est une donnée.** Le code lit `material_spaces.table_name`, interroge `information_schema`, puis colle le nom de table dans la requête. Ajouter une armoire oblige à créer une table.
 6. **Des données non typées.** Le prix est un texte (« Prix : 90 CHF ») relu par expression régulière à chaque affichage ; l'état est un texte libre où le code cherche « abim », « casse ».
@@ -182,40 +182,61 @@ INSERT INTO spaces (slug, label, short_label, image, accent, sort_order) VALUES
 
 Le compte admin ne va pas dans ce fichier : un fichier à part, non versionné, avec un mot de passe propre à l'installation.
 
-## 5. `03_inventaire.sql` – la reprise, sans JS
+## 5. `03_inventaire.sql` – la reprise depuis l'Excel
 
-Les 321 lignes sont déjà en SQL dans les 7 tables. On les fait passer par une table de transit, on corrige par des `UPDATE` écrits dans le fichier, puis on répartit. Tout est relançable et chaque correction reste lisible.
+**L'Excel fait foi** (décision du client, 07.10.2026). Les 7 tables de Mathieu ne servent plus de source.
+
+Version de référence : `Inventaire_CPNV_Multimedia_copie.xlsx`, dernière modification par Mathieu le 24.08.2026, conservé dans `Travail Mathieu/storage/inventaire.zip` (confirmé comme la plus récente le 07.10.2026).
+
+Une règle en découle : **les corrections de données se font dans l'Excel, pas dans le SQL.** Si un modèle, un nom ou un prix est faux, Mathieu (ou toi, avec son accord) le corrige dans l'Excel. Le fichier SQL ne fait que du nettoyage technique, toujours le même ; on peut donc le relancer à chaque nouvelle version de l'Excel.
+
+### Préparer l'Excel (à la main, une fois par version)
+
+1. Dans la feuille son, écrire le NOM sur la **première ligne de chaque groupe** (aujourd'hui la liste NOM / NOMBRE est décalée par rapport au détail, voir la question 3 de `Travail/analyse-colonnes-excel.md`).
+2. Dans la feuille support vidéo, supprimer la colonne A vide pour que le tableau commence en A comme les autres.
+3. Enregistrer chaque feuille remplie en **CSV UTF-8** : `etagere_son.csv`, `etagere_enreg_video.csv`, `etagere_support_video.csv`.
+
+### Le fichier SQL
 
 ```sql
--- 1. Transit : une ligne par ligne d'inventaire, tout en texte
+-- 1. Transit : une ligne par ligne de l'Excel, tout en texte
 CREATE TABLE import_inventaire (
-  emplacement VARCHAR(80) NOT NULL,
-  nom VARCHAR(255), designation VARCHAR(255), marque VARCHAR(120), modele VARCHAR(120),
-  categorie VARCHAR(80), identifiant VARCHAR(64), etat VARCHAR(255), prix VARCHAR(60),
-  contenu TEXT, description TEXT, nombre INT NOT NULL DEFAULT 1
+  emplacement VARCHAR(80) NOT NULL,          -- feuille d'origine
+  ligne INT NOT NULL,                        -- numéro de ligne dans la feuille
+  nom VARCHAR(255), nombre VARCHAR(20), designation VARCHAR(255), marque VARCHAR(120),
+  modele VARCHAR(120), categorie VARCHAR(80), identifiant VARCHAR(64), etat VARCHAR(255),
+  prix VARCHAR(60), contenu TEXT, description TEXT,
+  id_manquant VARCHAR(64), obj_manquant VARCHAR(255),   -- colonnes « OBJ manquant »
+  PRIMARY KEY (emplacement, ligne)
 );
 
-INSERT INTO import_inventaire
-  (emplacement, nom, designation, marque, modele, categorie, identifiant, etat, prix, contenu, description)
-SELECT 'etagere_son', nom, nom_du_materiel, marque, modele, categorie,
-       identifiants_individuels, etat, prix_chf, contenu, description
-FROM materials_etagere_son
-UNION ALL
-SELECT 'etagere_enreg_video', nom, nom_du_materiel, marque, modele, categorie,
-       identifiants_individuels, etat, prix_chf, contenu, description
-FROM materials_etagere_enreg_video
-UNION ALL
-SELECT 'etagere_support_video', nom, nom_du_materiel, marque, modele, categorie,
-       identifiants_individuels, etat, prix_chf, contenu, description
-FROM materials_etagere_support_video;
+-- Chargement d'une feuille (à répéter pour chaque CSV, ou via Importer > CSV dans phpMyAdmin)
+SET @n = 1;
+LOAD DATA LOCAL INFILE 'etagere_enreg_video.csv' INTO TABLE import_inventaire
+  CHARACTER SET utf8mb4 FIELDS TERMINATED BY ';' OPTIONALLY ENCLOSED BY '"' IGNORE 1 LINES
+  (nom, nombre, designation, marque, modele, categorie, identifiant, etat, prix, contenu,
+   description, id_manquant, obj_manquant)
+  SET emplacement = 'etagere_enreg_video', ligne = (@n := @n + 1);
 
--- 2. Corrections validées par le client, une par ligne
-UPDATE import_inventaire SET modele = 'H4n PRO', nom = 'Enregistreur ZOOM H4N Pro'
- WHERE identifiant LIKE 'MEDIA ZPRO%';
-UPDATE import_inventaire SET nombre = 25 WHERE nom = 'Bonette pour ZOOM H4n';
--- … la liste complète vient des réponses de Mathieu
+-- 2. Nettoyage technique, identique à chaque reprise
+DELETE FROM import_inventaire WHERE nom = 'NOM';                         -- en-têtes répétés
+UPDATE import_inventaire SET nom = NULL WHERE TRIM(nom) = '';
+UPDATE import_inventaire SET identifiant = NULL WHERE TRIM(identifiant) IN ('', '-');
 
--- 3. Les types (même formule d'identifiant que le PHP actuel : les emprunts existants restent valables)
+-- Le NOM n'est écrit que sur la 1re ligne d'un groupe : on le recopie vers le bas
+CREATE TEMPORARY TABLE noms AS
+SELECT a.emplacement, a.ligne,
+       (SELECT b.nom FROM import_inventaire b
+         WHERE b.emplacement = a.emplacement AND b.ligne < a.ligne AND b.nom IS NOT NULL
+         ORDER BY b.ligne DESC LIMIT 1) AS nom
+FROM import_inventaire a
+WHERE a.nom IS NULL;
+
+UPDATE import_inventaire i
+JOIN noms n ON n.emplacement = i.emplacement AND n.ligne = i.ligne
+SET i.nom = n.nom;
+
+-- 3. Les types
 INSERT INTO materials (id, space_id, name, designation, brand, model, category,
                        kit_content, description, replacement_cost)
 SELECT CONCAT('INV-', UPPER(LEFT(MD5(CONCAT(i.emplacement, '|', LOWER(MIN(TRIM(i.nom))))), 10))),
@@ -226,24 +247,30 @@ FROM import_inventaire i
 JOIN spaces s ON s.slug = i.emplacement
 GROUP BY i.emplacement, s.id, TRIM(i.nom);
 
--- 4. Les exemplaires
+-- 4. Les exemplaires : 1 ligne par objet étiqueté, 1 ligne avec la quantité NOMBRE sinon
 INSERT INTO material_units (material_id, identifier, quantity, state, state_note)
 SELECT CONCAT('INV-', UPPER(LEFT(MD5(CONCAT(i.emplacement, '|', LOWER(TRIM(i.nom)))), 10))),
-       NULLIF(TRIM(i.identifiant), '-'),
-       i.nombre,
+       i.identifiant,
+       IF(i.identifiant IS NULL, GREATEST(1, CAST(i.nombre AS UNSIGNED)), 1),
        IF(i.etat REGEXP 'abim|endomag|cass', 'damaged', 'ok'),
        IF(i.etat REGEXP 'abim|endomag|cass', i.etat, NULL)
 FROM import_inventaire i;
 
+-- 5. Objets manquants : liste à part dans l'Excel, rattachée par l'identifiant
+UPDATE material_units u
+JOIN import_inventaire i ON i.id_manquant = u.identifier
+SET u.missing_parts = i.obj_manquant
+WHERE i.obj_manquant IS NOT NULL;
+
 DROP TABLE import_inventaire;
 ```
 
-Deux points à régler avant d'écrire la version finale :
+À savoir :
 
-- Les quantités des objets sans étiquette (21 lignes « - ») ne sont pas dans les 7 tables : il faut les reprendre de la colonne NOMBRE, par des `UPDATE` à l'étape 2.
-- La liste « OBJ manquant » est une liste à part dans l'Excel (identifiant → objet manquant) : à rattacher par un `UPDATE … JOIN` sur l'identifiant.
-
-Variante si le client préfère repartir de l'Excel nettoyé : enregistrer chaque feuille en CSV et la charger dans `import_inventaire` par l'import CSV de phpMyAdmin. Les étapes 2 à 4 restent identiques.
+- La feuille son n'a pas les colonnes « OBJ manquant » : pour elle, la liste de colonnes du chargement s'arrête à `description`.
+- `LOAD DATA LOCAL` doit être autorisé par le serveur (`local_infile`). Sinon, l'import CSV de phpMyAdmin fait la même chose.
+- L'identifiant d'un type est calculé à partir de son nom (même formule que le PHP actuel). Si un nom change dans l'Excel, l'identifiant change aussi : sans importance tant que la base ne contient que des emprunts d'essai (question 3 ci-dessous).
+- Le SQL de cette section n'a pas encore été exécuté : il sera testé sur une base locale vide pendant le lot 3.2.
 
 ## 6. `04_vues.sql` – les règles dans la base
 
@@ -355,7 +382,7 @@ Version requise : MySQL 8.0.16 ou MariaDB 10.2 au minimum (contraintes `CHECK`, 
 
 ## 10. Questions à trancher avant de commencer
 
-1. Quelle source fait foi quand la base et l'Excel diffèrent (65 modèles, 37 noms, 21 prix) ?
+1. ~~Quelle source fait foi quand la base et l'Excel diffèrent ?~~ **L'Excel** (réponse du client, 07.10.2026). Reste à savoir : l'Excel reste-t-il la référence après la mise en ligne, ou le site prend-il le relais ? Dans le premier cas, chaque modification devra être faite dans l'Excel puis réimportée ; dans le second, l'Excel ne sert qu'à la reprise et le site fournit l'export.
 2. Les quantités des objets sans étiquette : la colonne NOMBRE de l'Excel est-elle juste pour eux ?
 3. Y a-t-il déjà de vrais emprunts dans la base, ou seulement des essais ? S'il n'y a que des essais, on repart d'une base vide.
 4. Les limites par rôle (nombre d'objets, durée, prolongation) pour Élève et Prof.

@@ -1,6 +1,6 @@
 # Analyse des colonnes de l'Excel d'inventaire
 
-Lot 3.1 du planning. Fichier analysé : `Inventaire_CPNV_Multimedia_copie.xlsx`, tel qu'il est décompressé dans `ressources-mpl/Travail Mathieu/storage/_xlsx_temp` (identique à `storage/inventaire.zip`). Analyse faite le 30.09.2026.
+Lot 3.1 du planning. Fichier analysé : `Inventaire_CPNV_Multimedia_copie.xlsx`, tel qu'il est décompressé dans `ressources-mpl/Travail Mathieu/storage/_xlsx_temp` (identique à `storage/inventaire.zip`). Analyse faite le 30.09.2026. Cette version (dernière modification par Mathieu le 24.08.2026) est confirmée comme la plus récente, et l'Excel fait foi sur la base (décisions du 07.10.2026).
 
 ## 1. Feuilles = emplacements
 
