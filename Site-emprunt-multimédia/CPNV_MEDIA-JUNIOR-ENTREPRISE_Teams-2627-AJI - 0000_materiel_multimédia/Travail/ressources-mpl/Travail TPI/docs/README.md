@@ -2,8 +2,6 @@
 
 Ce document est destiné aux futurs développeurs (humains ou IA) amenés à faire évoluer l’application. Il décrit l’architecture actuelle, les points d’extension clés, ainsi que les étapes pour installer le projet sur un nouvel environnement.
 
-> **Reprise Junior Entreprise 2026-2027** : les modifications faites depuis la reprise, et les points de ce guide qui ne sont plus justes, sont dans [`MODIFICATIONS.md`](MODIFICATIONS.md). Les explications MVC, Bootstrap et MySQL Workbench appliquées à ce code sont dans [`EXPLICATIONS.md`](EXPLICATIONS.md).
-
 ---
 
 ## 1. Aperçu rapide
