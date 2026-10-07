@@ -15,7 +15,7 @@ Serveur de l'école (AutoWeb). Chaque élève a :
 
 ### Variante : site dans un sous-dossier de `www/`
 
-- Nom de dossier **sans espace ni accent** (ex. `emprunt`) : avec `Travail TPI`, l'adresse contient `%20` et toutes les pages sauf l'accueil répondent « 404 - Page non trouvée ».
+- Nom de dossier **sans espace ni accent** (ex. `emprunt`) : avec `Travail TPI`, l'adresse contient `%20` et toutes les pages, accueil compris, répondent « 404 - Page non trouvée » (le routeur compare l'adresse encodée au chemin décodé).
 - Mettre `sous-dossier/.htaccess` dans ce dossier (pas `racine-www/.htaccess`) : l'adresse `…/emprunt/` renvoie vers `…/emprunt/public/`, et `storage/`, `database/`, `config/`… ne sont plus téléchargeables.
 
 ## 2. La base (phpMyAdmin de l'école)
