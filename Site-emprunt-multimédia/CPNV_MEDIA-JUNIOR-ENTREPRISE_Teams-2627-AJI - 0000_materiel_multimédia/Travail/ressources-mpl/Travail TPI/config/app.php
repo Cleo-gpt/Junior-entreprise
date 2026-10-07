@@ -9,11 +9,11 @@ return [
         'path' => __DIR__ . '/../storage',
     ],
     'database' => [
-        'host' => '127.0.0.1',
+        'host' => 'loutre.mysql',
         'port' => 3306,
-        'database' => 'cpnv_gestmat',
-        'username' => 'root',
-        'password' => '',
+        'database' => 'c167_studiomultimedia',
+        'username' => 'c167_studiomultimedia',
+        'password' => 'JND6!spms',
         'charset' => 'utf8mb4',
     ],
     'mail' => [

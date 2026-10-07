@@ -43,7 +43,7 @@ Chef de projet : Cléo Forclaz · Coach : Alain Jaccobi · Client : Mathieu Péz
 - [x] Relever les incohérences
 - [x] Comparer avec le travail de Mathieu
 - [x] Proposer les champs
-- [x] Source qui fait foi : l'Excel (07.10)
+- [ ] Source qui fait foi : pas l'Excel de Mathieu (07.10), à redéfinir plus tard
 - [ ] Valider les 7 questions avec Mathieu
 
 ### 3.2 Conception des tables (07.10 – 28.10)

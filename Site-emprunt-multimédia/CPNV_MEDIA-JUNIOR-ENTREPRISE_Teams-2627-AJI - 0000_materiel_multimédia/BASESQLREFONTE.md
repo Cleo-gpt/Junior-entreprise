@@ -184,7 +184,7 @@ Le compte admin ne va pas dans ce fichier : un fichier à part, non versionné, 
 
 ## 5. `03_inventaire.sql` – la reprise depuis l'Excel
 
-**L'Excel fait foi** (décision du client, 07.10.2026). Les 7 tables de Mathieu ne servent plus de source.
+> **Mise à jour 07.10.2026 : l'Excel de Mathieu ne fait finalement pas foi.** Ce point est mis de côté ; la reprise de l'inventaire décrite ici est à revoir.
 
 Version de référence : `Inventaire_CPNV_Multimedia_copie.xlsx`, dernière modification par Mathieu le 24.08.2026, conservé dans `Travail Mathieu/storage/inventaire.zip` (confirmé comme la plus récente le 07.10.2026).
 
