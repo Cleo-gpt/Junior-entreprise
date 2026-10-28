@@ -175,6 +175,16 @@ README.md, routine.md, TODOLIST.md, BASESQLREFONTE.md à la racine,
 analyse-colonnes-excel.md dans Travail/, contre-avis dans contre-avis/2026-10-28.md.
 Dossier Doc-code/ supprimé, serveur.py et README.md remis comme avant (serveur testé).
 
+12h04
+Capture de la racine du serveur : .composer, .ssh, backup, cgi-bin, log, private, ssl, tmp, web, webdav.
+Rien à supprimer, seulement ajouter.
+Il faut ajouter depuis Travail TPI : app, config, routes, storage à la racine, et .htaccess dans web.
+Contre-avis lancé.
+
+12h08
+Contre-avis reçu (Claude 8/10, contradicteur 9/10), ajouté dans contre-avis/2026-10-28.md.
+Correction : ne pas envoyer storage tel quel (adresses d'élèves de test, hash admin), créer storage/emails à la main sur le serveur.
+
 À clarifier
 Le PV du 07.10 dit de travailler uniquement sur la version TPI.
 Aujourd'hui, les changements ont été faits sur Travail Mathieu.
