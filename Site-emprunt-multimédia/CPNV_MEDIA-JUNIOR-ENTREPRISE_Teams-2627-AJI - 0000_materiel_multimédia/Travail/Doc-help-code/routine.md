@@ -185,6 +185,17 @@ Contre-avis lancé.
 Contre-avis reçu (Claude 8/10, contradicteur 9/10), ajouté dans contre-avis/2026-10-28.md.
 Correction : ne pas envoyer storage tel quel (adresses d'élèves de test, hash admin), créer storage/emails à la main sur le serveur.
 
+12h09
+Page « Domaine introuvable » de Wellhosted.
+Test : c'est la page de l'adresse du serveur bison.web.wellhosted.ch, pas celle du site.
+L'adresse du site est studio-multimedia.mediamatique.ch, qui répond toujours une erreur 500 :
+les dossiers app, config et routes ne sont pas encore pris en compte.
+
+12h10
+Page blanche sur studio-multimedia.mediamatique.ch : toujours l'erreur 500 (PHP s'arrête).
+L'index.php du serveur est bien celui de TPI (682 octets au lieu de 714 : FileZilla a converti les fins de ligne).
+Demande : capture de la racine du serveur après l'envoi, et dernières lignes du dossier log.
+
 À clarifier
 Le PV du 07.10 dit de travailler uniquement sur la version TPI.
 Aujourd'hui, les changements ont été faits sur Travail Mathieu.
