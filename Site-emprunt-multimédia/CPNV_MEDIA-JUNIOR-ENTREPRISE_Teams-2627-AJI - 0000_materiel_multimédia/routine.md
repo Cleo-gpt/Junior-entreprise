@@ -169,6 +169,12 @@ Ajouts retenus : web/uploads/materials en écriture, regarder le dossier /log du
 Dossier Travail/a-envoyer-TPI supprimé, à la demande de l'utilisateur.
 Ligne correspondante retirée du .gitignore.
 
+12h03
+Retour à la disposition d'origine, à la demande de l'utilisateur :
+README.md, routine.md, TODOLIST.md, BASESQLREFONTE.md à la racine,
+analyse-colonnes-excel.md dans Travail/, contre-avis dans contre-avis/2026-10-28.md.
+Dossier Doc-code/ supprimé, serveur.py et README.md remis comme avant (serveur testé).
+
 À clarifier
 Le PV du 07.10 dit de travailler uniquement sur la version TPI.
 Aujourd'hui, les changements ont été faits sur Travail Mathieu.
