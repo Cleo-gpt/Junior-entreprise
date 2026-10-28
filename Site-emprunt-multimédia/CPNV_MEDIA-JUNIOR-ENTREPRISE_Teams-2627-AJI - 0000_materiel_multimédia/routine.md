@@ -71,6 +71,23 @@ Contre-avis lancé.
 Contre-avis reçu (Claude 7/10, contradicteur 8.5/10), enregistré dans contre-avis/2026-10-28.md.
 Création de Travail/sql/import_materials_from_excel_pour_wellhosted.sql, pour remplir materials en version TPI.
 
+11h31
+Point sur la base Wellhosted d'après phpMyAdmin :
+schéma importé (roles 4, users 1, user_roles 2), materials encore vide.
+Liste des fichiers restant à importer selon la version, avec leur emplacement.
+Contre-avis lancé.
+
+11h32
+Contre-avis reçu (Claude 7/10, contradicteur 9/10), ajouté dans contre-avis/2026-10-28.md.
+Corrections : seul schema_TPI_pour_wellhosted.sql a pu être importé,
+materials se remplit étagère par étagère, seules 3 étagères ont des données.
+
+11h36
+Import de import_materials_from_excel_pour_wellhosted.sql sur Wellhosted (fait par l'utilisateur).
+Cela correspond au chemin de la version TPI : 77 types de matériel dans materials.
+Ne plus importer les fichiers de la version Mathieu (risque de doublons).
+Contre-avis lancé.
+
 À clarifier
 Le PV du 07.10 dit de travailler uniquement sur la version TPI.
 Aujourd'hui, les changements ont été faits sur Travail Mathieu.
