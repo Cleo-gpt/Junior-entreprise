@@ -11,8 +11,8 @@ Ce document est destiné aux futurs développeurs (humains ou IA) amenés à fai
 - **Persistance** :
   - MySQL (`materials`, `users`, `roles`, `student_whitelist`, etc.).
   - JSON (transitoire) pour certaines fonctionnalités encore en chantier (`storage/reservations.json`, `storage/emails`).
-- **Front-end** : Layout responsive inspiré de la charte CPNV, situé dans `app/Views` et `public/assets`.
-- **Fichiers publics** : `public/` est la racine exposée par Apache/Nginx.
+- **Front-end** : Layout responsive inspiré de la charte CPNV, situé dans `app/Views` et `web/assets`.
+- **Fichiers publics** : `web/` est la racine exposée par Apache/Nginx.
 
 ---
 
@@ -28,7 +28,7 @@ V1/
 ├─ config/                 → Configuration globale (`app.php`)
 ├─ database/               → Scripts SQL (schéma complet, seeds de base)
 ├─ docs/                   → Documentation développeur (ce fichier)
-├─ public/                 → Point d’entrée (`index.php`), assets, uploads
+├─ web/                    → Point d’entrée (`index.php`), assets, uploads
 ├─ storage/                → Données JSON héritées (réservations, emails de log, …)
 └─ uploads/                → Stockage des médias envoyés (couvertures & galeries)
 ```
@@ -39,7 +39,7 @@ V1/
 
 1. **Cloner ou copier** le dossier `V1` dans le répertoire web (`htdocs` sur XAMPP).
 2. **Configurer Apache** :
-   - Point d’entrée : `http://localhost/agm/V1/public/`
+   - Point d’entrée : `http://localhost/agm/V1/web/`
    - Activer `mod_rewrite` (`httpd.conf` → `LoadModule rewrite_module modules/mod_rewrite.so`).
 3. **Paramétrer PHP** (si nécessaire) :
    - Activer `pdo_mysql` dans `php.ini` (`extension=pdo_mysql`).
@@ -61,7 +61,7 @@ V1/
      ```
    - Les autres inscriptions restent en statut `pending` jusqu’à validation manuelle (fonctionnalité à implémenter côté interface admin).
 7. **Lancer l’application** :
-   - Naviguer vers `http://localhost/agm/V1/public/`.
+   - Naviguer vers `http://localhost/agm/V1/web/`.
    - Se connecter avec `admin@eduvaud.ch / Admin@123` puis changer ce mot de passe.
 
 ---
@@ -121,11 +121,11 @@ V1/
 
 | Zone | Fichiers à consulter | Description |
 |------|----------------------|-------------|
-| Routage | `public/index.php`, `routes/web.php` | Déclare les routes HTTP et l’initialisation globale. |
+| Routage | `web/index.php`, `routes/web.php` | Déclare les routes HTTP et l’initialisation globale. |
 | Services métier | `app/Services/*.php` | Contiennent la logique d’accès aux données et aux règles métiers. |
 | Vues | `app/Views/` | Templates PHP (utilisent `route()` et `asset()` pour générer les URLs). |
-| Assets | `public/assets/css/style.css`, `public/assets/js/app.js` | Styles et JS spécifiques à l’application. |
-| Uploads | `public/uploads/materials` | Répertoire d’upload (créé automatiquement). |
+| Assets | `web/assets/css/style.css`, `web/assets/js/app.js` | Styles et JS spécifiques à l’application. |
+| Uploads | `web/uploads/materials` | Répertoire d’upload (créé automatiquement). |
 | Config | `config/app.php` | Paramétrage central (base, mail, règles d’authentification). |
 | Documentation | `docs/README.md` (ce fichier) | Guide d’architecture et d’installation. |
 
@@ -136,11 +136,11 @@ Astuce : pour localiser rapidement la logique d’un écran, chercher le contrô
 ## 6. Procédure de déploiement sur un nouveau serveur
 
 1. Copier les sources (`V1/`) sur le nouveau serveur.
-2. Configurer le VirtualHost pour pointer vers `V1/public`.
+2. Configurer le VirtualHost pour pointer vers `V1/web`.
 3. Exécuter le script SQL (`database/schema.sql`) sur le MySQL cible.
 4. Mettre à jour le fichier `config/app.php` avec les paramètres de l’environnement (base, SMTP, etc.).
 5. Ajouter les adresses autorisées dans `student_whitelist`.
-6. Vérifier les permissions d’écriture sur `public/uploads/materials` et `storage/`.
+6. Vérifier les permissions d’écriture sur `web/uploads/materials` et `storage/`.
 7. Tester rapidement :
    - connexion en admin (`/login`),
    - ajout d’un matériel avec images,
@@ -189,7 +189,7 @@ V1/
 │   └── Views/          # Templates PHP (layouts, pages)
 ├── config/             # Fichiers de configuration applicative
 ├── docs/               # Documentation et scripts SQL
-├── public/             # Point d’entrée web (index.php, assets, uploads)
+├── web/                # Point d’entrée web (index.php, assets, uploads)
 ├── routes/             # Déclaration des routes web
 ├── storage/            # Données JSON (réservations, emails log, signatures)
 └── uploads/            # Fichiers téléversés par les utilisateurs
@@ -202,7 +202,7 @@ Conventions :
 
 ## Flux applicatifs
 - **Authentification** : `AuthController` s’appuie sur `AuthService` et `UserService` (MySQL). Les comptes sont activés automatiquement si l’adresse figure dans `allowed_emails`, sinon ils restent « pending » jusqu’à validation manuelle.
-- **Matériel** : `MaterialService` lit/écrit dans la table `materials`. Les images de couverture et galeries sont gérées via uploads locaux (`public/uploads/materials`) ou URLs.
+- **Matériel** : `MaterialService` lit/écrit dans la table `materials`. Les images de couverture et galeries sont gérées via uploads locaux (`web/uploads/materials`) ou URLs.
 - **Réservations** : `ReservationService` persiste encore en JSON (`storage/reservations.json`). Une migration vers MySQL est prévue : voir `docs/schema.sql` pour la structure proposée.
 - **Notifications** : `NotificationService` log les emails dans `storage/emails/` (mode `log`) ou passe par SMTP selon `config/app.php`.
 - **Administration** : `/admin/tools` regroupe l’ajout de matériel (formulaire structuré) et la prévisualisation des emails. L’accès est réservé aux rôles `admin` & `responsable`.
@@ -220,15 +220,15 @@ Le script `docs/schema.sql` automatise la création de la base et des tables pri
 > **Important**
 > - Activer `pdo_mysql` dans `php.ini` et redémarrer Apache après modification.
 > - Vérifier `upload_max_filesize` et `post_max_size` pour autoriser les uploads de galeries.
-> - Le dossier `public/uploads/materials` doit être accessible en écriture par le serveur web.
+> - Le dossier `web/uploads/materials` doit être accessible en écriture par le serveur web.
 > - Le champ `materials.gallery` utilise le type `JSON` (MySQL ≥ 5.7 / MariaDB ≥ 10.2.7). Si la version cible ne le supporte pas, remplacer par `LONGTEXT` et encoder/décoder manuellement côté PHP.
 
 ## Mise en place rapide (dev local XAMPP)
 1. Cloner/copier le dossier `V1` dans `C:\xampp\htdocs\agm` (ou chemin équivalent).
 2. Créer la base MySQL : `mysql -u root -p < docs/schema.sql` (adapter si besoin).
 3. Ajuster `config/app.php` : `database` (host, port, database, username, password), `mail` (driver `log` par défaut).
-4. Vérifier que `RewriteModule` est activé (`httpd.conf`). Le `.htaccess` dans `public/` redirige les URLs vers `index.php`.
-5. Accéder à `http://localhost/agm/V1/public/`. Un compte admin (`admin@eduvaud.ch` / `Admin@123`) est auto-créé si absent. **Changez ce mot de passe immédiatement en production.**
+4. Vérifier que `RewriteModule` est activé (`httpd.conf`). Le `.htaccess` dans `web/` redirige les URLs vers `index.php`.
+5. Accéder à `http://localhost/agm/V1/web/`. Un compte admin (`admin@eduvaud.ch` / `Admin@123`) est auto-créé si absent. **Changez ce mot de passe immédiatement en production.**
 
 ## Gestion des utilisateurs
 - `UserService` centralise l’accès MySQL (`app/Services/UserService.php`).
@@ -242,7 +242,7 @@ Le script `docs/schema.sql` automatise la création de la base et des tables pri
 - Pour créer un nouveau rôle, il suffit de l’insérer en base (aucune table de référence obligatoire, mais gardez la cohérence avec `config/app.php['auth']['role_labels']`). Les badges affichés se basent sur ces libellés.
 
 ## Gestion du matériel
-- Ajout via `/admin/tools` : uploads multiples, URLs librement saisissables. Les fichiers sont stockés sous `public/uploads/materials/` avec un nom unique.
+- Ajout via `/admin/tools` : uploads multiples, URLs librement saisissables. Les fichiers sont stockés sous `web/uploads/materials/` avec un nom unique.
 - Le catalogue public utilise l’image de couverture (`cover_image`). À défaut, la première image de la galerie est utilisée, puis un fallback (`assets/img/sample-camera.svg`).
 - `MaterialService` (MySQL) se trouve dans `app/Services/MaterialService.php`. Les contrôleurs ou services tiers doivent passer par cette classe pour toute manipulation.
 

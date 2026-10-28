@@ -8,14 +8,18 @@ return [
     'storage' => [
         'path' => __DIR__ . '/../storage',
     ],
-    'database' => [
-        'host' => '127.0.0.1',
-        'port' => 3306,
-        'database' => 'cpnv_gestmat',
-        'username' => 'root',
-        'password' => '',
-        'charset' => 'utf8mb4',
-    ],
+    // Sur le serveur, les accès viennent de config/database.local.php (ignoré par Git).
+    // Sans ce fichier, on utilise la base XAMPP locale.
+    'database' => file_exists(__DIR__ . '/database.local.php')
+        ? require __DIR__ . '/database.local.php'
+        : [
+            'host' => '127.0.0.1',
+            'port' => 3306,
+            'database' => 'cpnv_gestmat',
+            'username' => 'root',
+            'password' => '',
+            'charset' => 'utf8mb4',
+        ],
     'mail' => [
         'driver' => 'log', // log | smtp
         'from_address' => 'no-reply@cpnv-gestmat.ch',

@@ -985,7 +985,7 @@ class AdminController extends BaseController
             throw new \InvalidArgumentException('Format d’image non supporté. Formats autorisés : ' . implode(', ', $allowedExtensions) . '.');
         }
 
-        $targetDir = __DIR__ . '/../../public/uploads/materials';
+        $targetDir = __DIR__ . '/../../web/uploads/materials';
 
         if (!is_dir($targetDir)) {
             if (!mkdir($targetDir, 0775, true) && !is_dir($targetDir)) {
