@@ -196,6 +196,30 @@ Page blanche sur studio-multimedia.mediamatique.ch : toujours l'erreur 500 (PHP 
 L'index.php du serveur est bien celui de TPI (682 octets au lieu de 714 : FileZilla a converti les fins de ligne).
 Demande : capture de la racine du serveur après l'envoi, et dernières lignes du dossier log.
 
+12h12
+Nouvelle capture de la racine du serveur : toujours pas de app, config, routes ni storage.
+Hypothèse : le serveur (ISPConfig) ne laisse écrire que dans web, private et tmp.
+Solution proposée : mettre le code dans private et changer 2 fichiers de TPI (index.php et AdminController.php).
+En attente de l'accord de l'utilisateur, car le README interdit de modifier TPI sans demande.
+Contre-avis lancé.
+
+12h14
+Contre-avis reçu (Claude 8/10, contradicteur 9/10).
+Les 4 chemins proposés sont confirmés. Sous ISPConfig, le code doit aller dans private dans tous les cas.
+Toujours en attente de l'accord pour modifier TPI.
+
+12h17
+Accord de l'utilisateur pour modifier Travail TPI.
+web/index.php : les 3 chemins vont maintenant dans ../private (app, routes).
+app/Controllers/AdminController.php : chemin des photos remonté d'un niveau (../../../web/uploads/materials).
+Test sur une copie organisée comme le serveur (web et private côte à côte) : le code est trouvé, le site va jusqu'à la base.
+Attention : en local (MAMP), TPI attend maintenant un dossier private à côté de web.
+Contre-avis lancé.
+
+12h19
+Contre-avis reçu (Claude 7/10, contradicteur 9/10), ajouté dans contre-avis/2026-10-28.md.
+Modifications confirmées justes. Idée retenue à proposer : un repli automatique pour que TPI marche aussi sur MAMP.
+
 À clarifier
 Le PV du 07.10 dit de travailler uniquement sur la version TPI.
 Aujourd'hui, les changements ont été faits sur Travail Mathieu.
