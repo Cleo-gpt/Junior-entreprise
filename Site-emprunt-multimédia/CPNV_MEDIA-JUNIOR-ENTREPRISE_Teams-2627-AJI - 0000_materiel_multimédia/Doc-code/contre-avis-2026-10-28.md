@@ -282,3 +282,148 @@ Points 4 et 5 appliqués : .DS_Store ajouté au .gitignore et retiré de Git (fi
 Point 3 (pas de dossier analyses/) non suivi : les deux analyses vont ensemble et Travail/ reste lisible.
 Fichier .849C9593... : confirmé (synchro Teams/OneDrive), retiré de Git et ignoré, gardé sur le disque.
 Commit : en attente de l'accord de l'utilisateur.
+
+
+## 11h49
+
+Consigne :
+« Toujours rien »
+
+
+Contre-avis
+
+Juste : le diagnostic n'est pas dans le dossier servi (page 404 d'Apache, pas celle du script).
+
+Indice non exploité : l'accueil renvoie un 500 vide en UTF-8.
+C'est PHP qui s'arrête sur une erreur fatale, pas Apache.
+Donc PHP marche, index.php est bien dans le dossier servi, et le .htaccess ne bloque rien.
+
+Les causes sont à revoir :
+le .htaccess absent explique seulement le 404 de /login, pas le 500.
+Le 500 vient plutôt de app/ absent à côté de web/, ou d'un PHP trop ancien.
+
+Oubli : le plus rapide est la ligne exacte « PHP Fatal error » du journal d'erreurs Wellhosted.
+
+Risque : faire l'envoi SFTP soi-même demande que l'utilisateur donne ses identifiants dans la conversation. À éviter.
+
+
+Note de la solution de Claude : 6/10
+
+
+Meilleure solution proposée
+
+1. Panneau Wellhosted : journal d'erreurs PHP, copier la dernière ligne « PHP Fatal error ».
+2. Trouver le vrai dossier servi : envoyer un test.txt dans web/, ouvrir /test.txt. Si 404, on écrit au mauvais endroit.
+3. FTP : afficher les fichiers cachés (FileZilla : Serveur, puis Forcer l'affichage des fichiers cachés), ou passer par le gestionnaire de fichiers du panneau.
+4. Envoyer app, config, routes, storage, database et uploads au même niveau que web, et le .htaccess dans web.
+5. Vérifier PHP 8.1 ou plus, avec pdo_mysql.
+6. Ensuite seulement, le diagnostic, puis le supprimer.
+
+
+Note de sa solution : 8/10
+
+
+Suite donnée par Claude
+
+Indice vérifié : le 500 arrive bien avec un en-tête UTF-8, donc c'est PHP qui plante.
+Proposition SFTP retirée : ne pas donner d'identifiants dans la conversation.
+
+
+## 11h55
+
+Consigne :
+Les .md ne doivent pas être dans des sous-dossiers : faire un sous-dossier Doc-code avec tous les .md.
+
+
+Contre-avis
+
+1. README.md n'aurait pas dû bouger : sur GitHub, le README s'affiche à l'ouverture du dossier.
+Le dossier du projet n'a plus de page d'accueil.
+
+2. routine.md et le contre-avis déplacés pendant qu'une autre session Claude écrit dedans.
+Risque de deux journaux et de lignes perdues.
+
+3. Contre-avis mis à plat dans Doc-code : un fichier par jour va vite remplir le dossier.
+Un sous-dossier Doc-code/contre-avis/ serait plus clair.
+
+4. TODOLIST.md et serveur.py séparés : si l'un bouge, l'outil casse.
+
+5. Plus grave : Travail/ressources-mpl/mdp.txt est suivi par Git, dans un dépôt public.
+
+6. Rien n'est commité alors qu'une autre session travaille en parallèle.
+
+
+Note de la solution de Claude : 6/10
+
+
+Meilleure solution proposée
+
+1. Prévenir ou arrêter l'autre session avant de déplacer.
+2. Laisser README.md à la racine, avec un lien vers Doc-code/.
+3. Mettre les autres .md dans Doc-code, et les contre-avis dans Doc-code/contre-avis/.
+4. Garder la correction de serveur.py avec un commentaire sur l'emplacement de TODOLIST.md.
+5. Commit tout de suite, avec un message clair.
+6. Retirer mdp.txt de Git, l'ignorer, changer les mots de passe, nettoyer l'historique si besoin.
+7. Vérifier le résultat sur GitHub.
+
+
+Note de sa solution : 9/10
+
+
+Suite donnée par Claude
+
+Point 6 appliqué : mdp.txt retiré de Git et ajouté au .gitignore (gardé sur le disque).
+Il est déjà sur GitHub (commit 0e9b04c) : changer les mots de passe est à décider avec l'utilisateur.
+Points 1 à 3 : README.md dans Doc-code est la demande explicite de l'utilisateur, gardé ; à confirmer.
+Commit : en attente de l'accord de l'utilisateur.
+
+
+## 11h55 (FileZilla)
+
+Consigne :
+Capture FileZilla : sur le serveur, seulement log, private, ssl, tmp et web ; dans web : assets, uploads, index.php.
+« Mais là il est dans un serveur, pas sur mon ordi »
+
+
+Contre-avis
+
+Juste : le dossier a-envoyer-TPI est complet, le diagnostic du 500 est bon, storage vide suffit,
+les explications sur /cores et le « 421 Timeout » sont justes.
+
+Selon lui, la base n'a pas été importée et schema.sql contient USE.
+(Faux ici : la base c167_studiomultimedia a déjà ses 9 tables et 77 matériels, importés avec les fichiers « _pour_wellhosted ».)
+
+web/uploads/materials doit aussi être en écriture.
+Le web/uploads du serveur peut contenir des images : fusionner, ne pas écraser.
+
+Sauvegarder l'ancien /web/index.php avant d'écraser.
+Vérifier que PHP est en version 8 ou plus.
+
+Le compte admin par défaut a un mot de passe connu : le changer à la première connexion.
+
+En cas de nouveau 500, lire le dossier /log du serveur.
+
+
+Note de la solution de Claude : 6/10
+
+
+Meilleure solution proposée
+
+1. Importer le schéma sans CREATE DATABASE ni USE (déjà fait).
+2. Vérifier PHP 8 ou plus.
+3. FileZilla : afficher les fichiers cachés, se reconnecter.
+4. Sauvegarder l'ancien /web/index.php.
+5. Envoyer app, config, routes, storage dans « / ».
+6. Envoyer le contenu de web dans /web avec .htaccess, en fusionnant uploads.
+7. storage et web/uploads/materials en 755, ou 775 si l'écriture échoue.
+8. Ouvrir le site, puis /login, et changer le mot de passe admin.
+9. En cas de 500, lire /log.
+
+
+Note de sa solution : 9/10
+
+
+Suite donnée par Claude
+
+Points 1 et 2 du contradicteur écartés : la base est déjà prête.
+Gardés : web/uploads/materials en écriture, dossier /log en cas d'erreur, version PHP.

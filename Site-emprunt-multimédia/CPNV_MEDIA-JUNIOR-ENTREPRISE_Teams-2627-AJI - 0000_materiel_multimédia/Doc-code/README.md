@@ -18,11 +18,14 @@ Emplacement du dossier sur l'ordinateur :
 Contenu du dossier :
 
     CPNV_MEDIA-JUNIOR-ENTREPRISE_Teams-2627-AJI - 0000_materiel_multimédia/
-    ├── README.md                 ce fichier
-    ├── routine.md                journal des étapes et bilan de fin de journée
-    ├── contre-avis/              avis du spécialiste contradicteur, un fichier par jour
-    ├── todolist/
+    ├── Doc-code/                 tous les fichiers .md
+    │   ├── README.md             ce fichier
+    │   ├── routine.md            journal des étapes et bilan de fin de journée
     │   ├── TODOLIST.md           liste des tâches à cocher
+    │   ├── BASESQLREFONTE.md     analyse et refonte de la base de données
+    │   ├── analyse-colonnes-excel.md
+    │   └── contre-avis-AAAA-MM-JJ.md   avis du spécialiste contradicteur, un par jour
+    ├── todolist/
     │   ├── index.html            page web pour cocher la TODOLIST
     │   ├── style.css
     │   └── serveur.py            lancer : python3 todolist/serveur.py
@@ -35,9 +38,6 @@ Contenu du dossier :
     │   │   └── PDF (Backup)/     copie PDF des PV
     │   └── Prise de note/
     ├── Travail/
-    │   ├── analyses/
-    │   │   ├── BASESQLREFONTE.md          analyse et refonte de la base de données
-    │   │   └── analyse-colonnes-excel.md
     │   ├── diagnostic/           script de test pour le serveur
     │   ├── sql/                  scripts SQL écrits pendant le projet
     │   └── ressources-mpl/
@@ -79,9 +79,9 @@ Structure d'un site (Travail TPI et Travail Mathieu) :
 
 Écrire en français.
 
-Après chaque étape, ajouter une ligne dans routine.md avec le jour et l'heure.
+Après chaque étape, ajouter une ligne dans Doc-code/routine.md avec le jour et l'heure.
 
-Suivre l'ordre de todolist/TODOLIST.md et cocher ce qui est fait.
+Suivre l'ordre de Doc-code/TODOLIST.md et cocher ce qui est fait.
 
 Garder un code simple à maintenir : c'est une demande du client.
 
@@ -97,8 +97,8 @@ le contredit et donne une note sur 10 à la solution de Claude,
 propose une meilleure solution,
 donne une note sur 10 à sa propre solution.
 
-Le résultat est sauvegardé à chaque fois dans contre-avis/,
-un fichier par journée de travail sur le dossier : contre-avis/AAAA-MM-JJ.md
+Le résultat est sauvegardé à chaque fois dans Doc-code/,
+un fichier par journée de travail sur le dossier : Doc-code/contre-avis-AAAA-MM-JJ.md
 Chaque contre-avis est ajouté à la suite, avec l'heure et la consigne.
 
 
@@ -140,16 +140,16 @@ Ne pas commiter ni pousser sur GitHub sans accord.
 
 ## 3. Obligatoire en fin de journée (12h30) ou en fin de session (plus de tokens)
 
-Ajouter dans routine.md le bilan de la journée :
+Ajouter dans Doc-code/routine.md le bilan de la journée :
 ce qui a été fait, en quelques lignes.
 
 Lire le PV du jour dans Gestion de projet/PV.
 S'il n'existe pas encore, le signaler et prendre le dernier PV.
 
-Écrire dans routine.md ce qu'il faut faire la prochaine fois,
+Écrire dans Doc-code/routine.md ce qu'il faut faire la prochaine fois,
 d'après les actions à mener et les décisions du PV.
 
-Cocher dans todolist/TODOLIST.md les tâches terminées.
+Cocher dans Doc-code/TODOLIST.md les tâches terminées.
 
 Vérifier qu'aucun mot de passe n'est dans un fichier suivi par Git.
 

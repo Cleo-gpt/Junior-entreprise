@@ -130,6 +130,41 @@ Contre-avis lancé.
 Fichier caché .849C9593-... confirmé : synchronisation Teams/OneDrive.
 Retiré de Git et ajouté au .gitignore, gardé sur le disque.
 
+11h51
+Contre-avis reçu (Claude 6/10, contradicteur 8/10), ajouté dans contre-avis/2026-10-28.md.
+Le 500 vient de PHP : il manque très probablement app/ à côté de web/, ou PHP est trop ancien.
+Prochaine étape : journal d'erreurs PHP Wellhosted et test.txt pour trouver le vrai dossier servi.
+
+11h54
+Tous les fichiers .md regroupés dans un sous-dossier Doc-code/ :
+README.md, routine.md, TODOLIST.md, BASESQLREFONTE.md, analyse-colonnes-excel.md, contre-avis-2026-10-28.md.
+Dossiers vides Travail/analyses/ et contre-avis/ supprimés.
+todolist/serveur.py lit maintenant Doc-code/TODOLIST.md (testé).
+README.md mis à jour (arborescence et chemins).
+
+11h55
+Contre-avis reçu (Claude 6/10, contradicteur 9/10), ajouté dans Doc-code/contre-avis-2026-10-28.md.
+mdp.txt était suivi par Git et déjà sur GitHub (dépôt public).
+Retiré de Git et ajouté au .gitignore, gardé sur le disque.
+Mots de passe à changer : à décider.
+
+11h55
+Capture FileZilla du serveur : à la racine il y a log, private, ssl, tmp et web.
+Dans web : assets, uploads, index.php.
+Les dossiers app, config, routes et storage manquent à côté de web : c'est la cause de l'erreur 500.
+Le panneau de gauche de FileZilla était sur /cores (dossier système du Mac) : d'où l'erreur « Permission denied ».
+Création de Travail/a-envoyer-TPI : copie propre à envoyer (app, config, routes, storage vide, web avec .htaccess).
+Dossier ajouté au .gitignore (il contient les accès à la base).
+Contre-avis lancé.
+
+11h57
+Décision de l'utilisateur : tous les .md restent dans Doc-code/, README compris, comme demandé.
+Les propositions du contre-avis sur le rangement ne sont pas suivies.
+
+11h58
+Contre-avis reçu (Claude 6/10, contradicteur 9/10), ajouté dans Doc-code/contre-avis-2026-10-28.md.
+Ajouts retenus : web/uploads/materials en écriture, regarder le dossier /log du serveur en cas d'erreur, vérifier PHP 8.
+
 À clarifier
 Le PV du 07.10 dit de travailler uniquement sur la version TPI.
 Aujourd'hui, les changements ont été faits sur Travail Mathieu.

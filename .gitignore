@@ -9,3 +9,9 @@
 
 # Fichier de synchronisation Teams/OneDrive (à garder sur le disque)
 **/.849C9593-D756-4E56-8D6E-42412F2A707B
+
+# Fichiers de mots de passe : jamais sur GitHub
+**/mdp.txt
+
+# Dossier prêt à envoyer sur le serveur (contient les accès à la base)
+**/Travail/a-envoyer-TPI/
