@@ -88,6 +88,48 @@ Cela correspond au chemin de la version TPI : 77 types de matériel dans materia
 Ne plus importer les fichiers de la version Mathieu (risque de doublons).
 Contre-avis lancé.
 
+11h38
+Contre-avis reçu (Claude 6/10, contradicteur 8/10), ajouté dans contre-avis/2026-10-28.md.
+Points vérifiés : réimport dangereux après des réservations, storage/ de TPI contient des données de test,
+mdp.txt est aussi sur GitHub.
+
+11h40
+Le site en ligne n'affiche rien.
+Test depuis le Mac : la page d'accueil renvoie une erreur 500 vide (erreur PHP cachée).
+Le CSS et le JS de la version TPI s'affichent : la racine web/ est bonne.
+L'adresse /login renvoie 404 : la réécriture d'adresses (.htaccess) ne semble pas marcher.
+Création de Travail/diagnostic/diag.php pour trouver la cause (à supprimer du serveur après usage).
+Contre-avis lancé.
+
+11h42
+Contre-avis reçu (Claude 6/10, contradicteur 8/10), ajouté dans contre-avis/2026-10-28.md.
+Piste principale : le .htaccess n'a peut-être pas été envoyé (fichier caché dans le FTP).
+Diagnostic sécurisé : renommé avec un nom au hasard, protégé par un jeton (jamais écrit dans Git).
+Dossier Travail/diagnostic ajouté au .gitignore.
+
+11h42
+Rangement des fichiers à la racine du dossier :
+TODOLIST.md déplacé dans todolist/ (serveur.py corrigé et testé).
+BASESQLREFONTE.md et analyse-colonnes-excel.md déplacés dans Travail/analyses/.
+À la racine restent README.md et routine.md.
+Le fichier caché .849C9593-... est laissé en place : fichier de synchronisation (Teams/OneDrive).
+README.md mis à jour (arborescence et chemins).
+
+11h43
+Contre-avis reçu (Claude 6/10, contradicteur 9/10), ajouté dans contre-avis/2026-10-28.md.
+.DS_Store ajouté au .gitignore et retiré de Git (8 fichiers, gardés sur le disque).
+
+11h49
+« Toujours rien » : nouveau test du site en ligne depuis le Mac.
+Accueil toujours en erreur 500 vide, /login toujours 404.
+Le fichier de diagnostic n'est pas trouvé sur le serveur (404 d'Apache) : il n'a pas été envoyé dans le dossier servi.
+Demande à l'utilisateur d'une capture du FTP pour voir où sont les fichiers.
+Contre-avis lancé.
+
+11h50
+Fichier caché .849C9593-... confirmé : synchronisation Teams/OneDrive.
+Retiré de Git et ajouté au .gitignore, gardé sur le disque.
+
 À clarifier
 Le PV du 07.10 dit de travailler uniquement sur la version TPI.
 Aujourd'hui, les changements ont été faits sur Travail Mathieu.

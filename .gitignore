@@ -1,2 +1,11 @@
 # Accès aux bases de données des serveurs : jamais sur GitHub
 **/config/database.local.php
+
+# Scripts de diagnostic temporaires (contiennent un jeton)
+**/Travail/diagnostic/
+
+# Fichiers système du Mac
+.DS_Store
+
+# Fichier de synchronisation Teams/OneDrive (à garder sur le disque)
+**/.849C9593-D756-4E56-8D6E-42412F2A707B

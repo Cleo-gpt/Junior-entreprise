@@ -20,11 +20,10 @@ Contenu du dossier :
     CPNV_MEDIA-JUNIOR-ENTREPRISE_Teams-2627-AJI - 0000_materiel_multimédia/
     ├── README.md                 ce fichier
     ├── routine.md                journal des étapes et bilan de fin de journée
-    ├── TODOLIST.md               liste des tâches à cocher
-    ├── BASESQLREFONTE.md         analyse et refonte de la base de données
     ├── contre-avis/              avis du spécialiste contradicteur, un fichier par jour
-    ├── todolist/                 page web pour cocher la TODOLIST
-    │   ├── index.html
+    ├── todolist/
+    │   ├── TODOLIST.md           liste des tâches à cocher
+    │   ├── index.html            page web pour cocher la TODOLIST
     │   ├── style.css
     │   └── serveur.py            lancer : python3 todolist/serveur.py
     ├── Gestion de projet/
@@ -36,7 +35,10 @@ Contenu du dossier :
     │   │   └── PDF (Backup)/     copie PDF des PV
     │   └── Prise de note/
     ├── Travail/
-    │   ├── analyse-colonnes-excel.md
+    │   ├── analyses/
+    │   │   ├── BASESQLREFONTE.md          analyse et refonte de la base de données
+    │   │   └── analyse-colonnes-excel.md
+    │   ├── diagnostic/           script de test pour le serveur
     │   ├── sql/                  scripts SQL écrits pendant le projet
     │   └── ressources-mpl/
     │       ├── Travail TPI/      version de référence du site
@@ -79,7 +81,7 @@ Structure d'un site (Travail TPI et Travail Mathieu) :
 
 Après chaque étape, ajouter une ligne dans routine.md avec le jour et l'heure.
 
-Suivre l'ordre de TODOLIST.md et cocher ce qui est fait.
+Suivre l'ordre de todolist/TODOLIST.md et cocher ce qui est fait.
 
 Garder un code simple à maintenir : c'est une demande du client.
 
@@ -147,7 +149,7 @@ S'il n'existe pas encore, le signaler et prendre le dernier PV.
 Écrire dans routine.md ce qu'il faut faire la prochaine fois,
 d'après les actions à mener et les décisions du PV.
 
-Cocher dans TODOLIST.md les tâches terminées.
+Cocher dans todolist/TODOLIST.md les tâches terminées.
 
 Vérifier qu'aucun mot de passe n'est dans un fichier suivi par Git.
 
