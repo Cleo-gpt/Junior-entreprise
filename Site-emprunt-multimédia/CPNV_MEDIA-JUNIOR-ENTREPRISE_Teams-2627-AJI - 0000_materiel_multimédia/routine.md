@@ -67,6 +67,10 @@ Base c167_studiomultimedia sur Wellhosted : les 9 tables du schéma sont bien im
 Reste à importer les tables d'emplacement si on met en ligne la version Mathieu.
 Contre-avis lancé.
 
+11h27
+Contre-avis reçu (Claude 7/10, contradicteur 8.5/10), enregistré dans contre-avis/2026-10-28.md.
+Création de Travail/sql/import_materials_from_excel_pour_wellhosted.sql, pour remplir materials en version TPI.
+
 À clarifier
 Le PV du 07.10 dit de travailler uniquement sur la version TPI.
 Aujourd'hui, les changements ont été faits sur Travail Mathieu.
