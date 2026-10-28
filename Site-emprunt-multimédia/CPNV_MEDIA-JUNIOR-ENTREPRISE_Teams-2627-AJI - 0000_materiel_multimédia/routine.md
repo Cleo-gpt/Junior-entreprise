@@ -48,6 +48,25 @@ Points relevés : base locale MAMP mal réglée par défaut, mot de passe public
 11h04
 Ajout dans README.md de l'emplacement du dossier du projet sur l'ordinateur.
 
+11h19
+Erreur #1044 à l'import dans phpMyAdmin Wellhosted (accès refusé à la base cpnv_gestmat).
+Cause : les scripts contiennent CREATE DATABASE et USE cpnv_gestmat, or le login n'a des droits que sur c167_studiomultimedia.
+Création dans Travail/sql de deux copies sans ces lignes :
+inventaire_par_emplacement_pour_wellhosted.sql
+maj_inventaire_excel_2026-10-07_pour_wellhosted.sql
+Les fichiers d'origine ne sont pas modifiés (ils servent pour MAMP).
+
+11h24
+Ajout dans README.md (section 2) de la règle du contre-avis :
+un agent spécialiste en informatique contredit Claude, note sa solution sur 10,
+propose une meilleure solution et la note aussi.
+Sauvegarde dans contre-avis/, un fichier par jour.
+
+11h25
+Base c167_studiomultimedia sur Wellhosted : les 9 tables du schéma sont bien importées.
+Reste à importer les tables d'emplacement si on met en ligne la version Mathieu.
+Contre-avis lancé.
+
 À clarifier
 Le PV du 07.10 dit de travailler uniquement sur la version TPI.
 Aujourd'hui, les changements ont été faits sur Travail Mathieu.

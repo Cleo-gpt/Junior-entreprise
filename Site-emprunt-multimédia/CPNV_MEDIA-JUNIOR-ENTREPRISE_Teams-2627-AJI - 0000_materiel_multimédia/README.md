@@ -22,6 +22,7 @@ Contenu du dossier :
     ├── routine.md                journal des étapes et bilan de fin de journée
     ├── TODOLIST.md               liste des tâches à cocher
     ├── BASESQLREFONTE.md         analyse et refonte de la base de données
+    ├── contre-avis/              avis du spécialiste contradicteur, un fichier par jour
     ├── todolist/                 page web pour cocher la TODOLIST
     │   ├── index.html
     │   ├── style.css
@@ -81,6 +82,22 @@ Après chaque étape, ajouter une ligne dans routine.md avec le jour et l'heure.
 Suivre l'ordre de TODOLIST.md et cocher ce qui est fait.
 
 Garder un code simple à maintenir : c'est une demande du client.
+
+
+Contre-avis d'un spécialiste :
+
+Après chaque consigne, Claude crée un agent spécialiste en informatique
+qui joue le rôle de contradicteur.
+
+Cet agent :
+relit ce que Claude a dit ou fait,
+le contredit et donne une note sur 10 à la solution de Claude,
+propose une meilleure solution,
+donne une note sur 10 à sa propre solution.
+
+Le résultat est sauvegardé à chaque fois dans contre-avis/,
+un fichier par journée de travail sur le dossier : contre-avis/AAAA-MM-JJ.md
+Chaque contre-avis est ajouté à la suite, avec l'heure et la consigne.
 
 
 Décisions déjà prises :
