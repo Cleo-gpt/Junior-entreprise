@@ -51,7 +51,7 @@ Les fichiers `storage/*.json` datent de l'ancienne version. Seul `ImportService`
    - `materials` rempli par `import_materials_from_excel.sql` : 77 types, quantités tirées de la colonne NOMBRE ;
    - `materials` rempli par le code : chaque affichage d'un emplacement du catalogue recrée ou met à jour les types sous un autre identifiant (`INV-…`), sans les identifiants individuels. Jusqu'à 51 écritures pour afficher l'étagère son.
 3. **Les 7 tables ne correspondent pas à l'Excel.** Comparées ligne à ligne avec l'Excel de `storage/` : 65 modèles, 37 noms de matériel et 21 prix diffèrent. Exemple : les enregistreurs `MEDIA ZPRO1` à `ZPRO15` sont en modèle « H4n » dans la base et « H4n PRO » dans l'Excel. À l'inverse, l'Excel contient des erreurs de recopie que la base n'a pas (« 62 3D », « 63 3D », « 64 3D »…). **Décision du client (07.10.2026) : l'Excel fait foi.** Les 7 tables ne servent plus de source ; les erreurs de l'Excel se corrigent dans l'Excel.
-4. **Le NOM est mal associé dans l'étagère son.** 22 enregistreurs y sont nommés « Housse Enregistreur ZOOM ». Détail dans `analyse-colonnes-excel.md`.
+4. **Le NOM est mal associé dans l'étagère son.** 22 enregistreurs y sont nommés « Housse Enregistreur ZOOM ». Détail dans `Travail/analyse-colonnes-excel.md`.
 5. **Des tables dont le nom est une donnée.** Le code lit `material_spaces.table_name`, interroge `information_schema`, puis colle le nom de table dans la requête. Ajouter une armoire oblige à créer une table.
 6. **Des données non typées.** Le prix est un texte (« Prix : 90 CHF ») relu par expression régulière à chaque affichage ; l'état est un texte libre où le code cherche « abim », « casse ».
 7. **Des listes en JSON.** La base ne peut ni garantir qu'un identifiant est unique, ni dire où se trouve un appareil précis, ni qui l'a eu en dernier.
@@ -192,7 +192,7 @@ Une règle en découle : **les corrections de données se font dans l'Excel, pas
 
 ### Préparer l'Excel (à la main, une fois par version)
 
-1. Dans la feuille son, écrire le NOM sur la **première ligne de chaque groupe** (aujourd'hui la liste NOM / NOMBRE est décalée par rapport au détail, voir la question 3 de `analyse-colonnes-excel.md`).
+1. Dans la feuille son, écrire le NOM sur la **première ligne de chaque groupe** (aujourd'hui la liste NOM / NOMBRE est décalée par rapport au détail, voir la question 3 de `Travail/analyse-colonnes-excel.md`).
 2. Dans la feuille support vidéo, supprimer la colonne A vide pour que le tableau commence en A comme les autres.
 3. Enregistrer chaque feuille remplie en **CSV UTF-8** : `etagere_son.csv`, `etagere_enreg_video.csv`, `etagere_support_video.csv`.
 
@@ -386,4 +386,4 @@ Version requise : MySQL 8.0.16 ou MariaDB 10.2 au minimum (contraintes `CHECK`, 
 2. Les quantités des objets sans étiquette : la colonne NOMBRE de l'Excel est-elle juste pour eux ?
 3. Y a-t-il déjà de vrais emprunts dans la base, ou seulement des essais ? S'il n'y a que des essais, on repart d'une base vide.
 4. Les limites par rôle (nombre d'objets, durée, prolongation) pour Élève et Prof.
-5. Les 7 questions de `analyse-colonnes-excel.md`.
+5. Les 7 questions de `Travail/analyse-colonnes-excel.md`.

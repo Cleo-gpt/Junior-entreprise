@@ -165,6 +165,10 @@ Les propositions du contre-avis sur le rangement ne sont pas suivies.
 Contre-avis reçu (Claude 6/10, contradicteur 9/10), ajouté dans Doc-code/contre-avis-2026-10-28.md.
 Ajouts retenus : web/uploads/materials en écriture, regarder le dossier /log du serveur en cas d'erreur, vérifier PHP 8.
 
+12h02
+Dossier Travail/a-envoyer-TPI supprimé, à la demande de l'utilisateur.
+Ligne correspondante retirée du .gitignore.
+
 À clarifier
 Le PV du 07.10 dit de travailler uniquement sur la version TPI.
 Aujourd'hui, les changements ont été faits sur Travail Mathieu.

@@ -12,7 +12,7 @@ import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 DOSSIER = os.path.dirname(os.path.abspath(__file__))
-FICHIER_MD = os.path.join(os.path.dirname(DOSSIER), "Doc-code", "TODOLIST.md")
+FICHIER_MD = os.path.join(os.path.dirname(DOSSIER), "TODOLIST.md")
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8765
 
 FICHIERS = {
